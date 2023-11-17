@@ -1,0 +1,14 @@
+
+
+
+server:
+  port: 8081
+
+spring:
+  application:
+    name: MultiKart
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: multiKart_cart
