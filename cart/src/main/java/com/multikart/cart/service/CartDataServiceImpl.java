@@ -1,14 +1,11 @@
 package com.multikart.cart.service;
-
 import com.multikart.cart.Repository.CartRepo;
 import com.multikart.cart.common.Constants;
 import com.multikart.cart.model.ApplicationResponse;
 import com.multikart.cart.model.Cart;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 
 @Slf4j

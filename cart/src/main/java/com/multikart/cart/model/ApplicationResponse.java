@@ -2,7 +2,6 @@ package com.multikart.cart.model;
 
 import lombok.Data;
 
-import java.util.List;
 
 @Data
 public class ApplicationResponse<T> {

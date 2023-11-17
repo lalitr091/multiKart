@@ -1,7 +1,5 @@
 package multiKart.product.model;
-
 import lombok.Data;
-
 import java.util.List;
 
 @Data

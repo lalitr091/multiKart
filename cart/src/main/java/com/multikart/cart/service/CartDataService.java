@@ -1,6 +1,4 @@
 package com.multikart.cart.service;
-
-
 import com.multikart.cart.model.ApplicationResponse;
 import com.multikart.cart.model.Cart;
 

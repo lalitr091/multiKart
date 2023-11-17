@@ -1,6 +1,7 @@
 package com.multikart.cart.common;
 
-public class Constants {
+public class Constants
+{
 
     // Http Status Constants
     public static final int OK = 200;
