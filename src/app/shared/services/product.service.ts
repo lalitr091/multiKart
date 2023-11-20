@@ -38,7 +38,7 @@ export class ProductService {
 * @method getCategory
 */
   public getCategory() {
-    const url = this.apiUrl + '/product/v1/categories';
+    const url = this.apiUrl + '/product/allcategories';
     return this.http.get(url).pipe(
       map((resp: any) => {
         return resp.data;
@@ -58,7 +58,7 @@ export class ProductService {
 
   // Product
   private get products(): Observable<Product[]> {
-    this.Products = this.http.get<Product[]>(this.apiUrl + '/product/v1/productsAll').pipe(map(response => response));
+    this.Products = this.http.get<Product[]>(this.apiUrl + '/product/all').pipe(map(response => response));
     return this.Products;
   }
 
@@ -69,12 +69,12 @@ export class ProductService {
 
   //  Get All Products
   public get getAllProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.apiUrl + '/product/v1/productsAll');
+    return this.http.get<Product[]>(this.apiUrl + '/product/all');
   }
 
   // Get Products by category
   public getProductsByCategory(category: string): Observable<any> {
-    return this.http.get<any>(this.apiUrl + '/product/v1/products?category=' + category);
+    return this.http.get<any>(this.apiUrl + '/product/bycategories?category=' + category);
   }
 
   // Get Products By Slug
