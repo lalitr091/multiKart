@@ -23,14 +23,10 @@ export class MenuComponent implements OnInit {
   }
 
   onSubMenu(subCategory:any){
-    // if (  subCategory === 'All Products' ) {
-    //     this.router.navigate(['/shop/collection/left/sidebar/']);
-    // } else {
     let navigationExtras: NavigationExtras = {
-      queryParams: { 'category': this.request },
+      queryParams: { 'category': subCategory },
       fragment: 'anchor'};
       this.router.navigate(['/shop/collection/left/sidebar/'], navigationExtras);
-    // }
 }
 
   mainMenuToggle(): void {

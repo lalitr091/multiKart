@@ -67,15 +67,9 @@ export class CollectionLeftSidebarComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       // Accessing the 'condition' query parameter
       this.conditionString = params['category'];
-      if (this.category === 'All Products') {
-        this.productService.getProducts.subscribe((result: any) => {
-          this.products = result;
-        })
-      } else if (this.category === 'men' || 'women') {
       this.productService.getProductsByCategory(this.conditionString).subscribe((result: any) => {
         this.products = result.data;
       })
-    }
     })
   }
 
