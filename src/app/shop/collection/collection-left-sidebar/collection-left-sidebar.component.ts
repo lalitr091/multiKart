@@ -14,6 +14,8 @@ export class CollectionLeftSidebarComponent implements OnInit {
   public grid: string = 'col-xl-3 col-md-6';
   public layoutView: string = 'grid-view';
   public products: Product[] = [];
+  public displayProduct: Product[] = [];
+  public productPaginated = [];
   public brands: any[] = [];
   public colors: any[] = [];
   public size: any[] = [];
@@ -27,48 +29,86 @@ export class CollectionLeftSidebarComponent implements OnInit {
   public mobileSidebar: boolean = false;
   public loader: boolean = true;
   conditionString: any;
+  itemsPerPage: number = 16; // Adjust as needed
+  currentPage: number = 1;
+  loadFilteredProducts: any;
+  displayingItems = 0;
 
   constructor(private route: ActivatedRoute, private router: Router,
     private viewScroller: ViewportScroller, public productService: ProductService) {
     // // Get Query params..
-    // this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe(params => {
 
     //   this.conditionString = params['category'];
     //   this.productService.getProductsByCategory(this.conditionString).subscribe((result: any) => {
     //     this.products = result.data;
     //   })
-    // this.brands = params.brand ? params.brand.split(",") : [];
-    // this.colors = params.color ? params.color.split(",") : [];
-    // this.size  = params.size ? params.size.split(",")  : [];
-    // this.minPrice = params.minPrice ? params.minPrice : this.minPrice;
-    // this.maxPrice = params.maxPrice ? params.maxPrice : this.maxPrice;
-    // this.tags = [...this.brands, ...this.colors, ...this.size]; // All Tags Array
-    // this.category = params.category ? params.category : null;
-    // this.sortBy = params.sortBy ? params.sortBy : 'ascending';
-    // this.pageNo = params.page ? params.page : this.pageNo;
+    this.brands = params.brand ? params.brand.split(",") : [];
+    this.colors = params.color ? params.color.split(",") : [];
+    this.size  = params.size ? params.size.split(",")  : [];
+    this.minPrice = params.minPrice ? params.minPrice : this.minPrice;
+    this.maxPrice = params.maxPrice ? params.maxPrice : this.maxPrice;
+    this.tags = [...this.brands, ...this.colors, ...this.size]; // All Tags Array
+    this.category = params.category ? params.category : null;
+    this.sortBy = params.sortBy ? params.sortBy : 'ascending';
+    this.pageNo = params.page ? params.page : this.pageNo;
+    this.paginate = this.productService.getPager(this.products.length, this.pageNo);
 
-    //   // Get Filtered Products..
-    //   this.productService.filterProducts(this.tags).subscribe(response => {         
-    //     // Sorting Filter
-    //     this.products = this.productService.sortProducts(response, this.sortBy);
-    //     // Category Filter
-    //     if(params.category)
-    //       this.products = this.products.filter(item => item.type == this.category);
-    //     // Price Filter
-    //     this.products = this.products.filter(item => item.price >= this.minPrice && item.price <= this.maxPrice) 
-    //     // Paginate Products
-    //     this.paginate = this.productService.getPager(this.products.length, +this.pageNo);     // get paginate object from service
-    //     this.products = this.products.slice(this.paginate.startIndex, this.paginate.endIndex + 1); // get current page of items
-    //   })
-    // })
+      // Get Filtered Products..
+      this.productService.filterProducts(this.tags).subscribe(response => {         
+        if (response?.length > 0 ) {
+        // Sorting Filter
+        this.products = this.productService.sortProducts(response, this.sortBy);
+        // Category Filter
+        if(params.category)
+          this.products = this.products.filter(item => item.type == this.category);
+        // Price Filter
+        this.products = this.products.filter(item => item.price >= this.minPrice && item.price <= this.maxPrice) 
+        // Paginate Products
+        this.paginate = this.productService.getPager(this.products.length, +this.pageNo);     // get paginate object from service
+        this.products = this.products.slice(this.paginate.startIndex, this.paginate.endIndex + 1); // get current page of items
+        }
+      })
+    })
   }
 
   ngOnInit(): void {
+    // this.route.queryParams.subscribe(params => {
+    //   // Accessing the 'condition' query parameter
+    //   this.conditionString = params['category'];
+    //   this.productService.getProductsByCategory(this.conditionString).subscribe((result: any) => {
+    //     this.products = result.data;
+    //   })
+    // })
+
     this.route.queryParams.subscribe(params => {
       // Accessing the 'condition' query parameter
-      this.conditionString = params['category'];
-      this.productService.getProductsByCategory(this.conditionString).subscribe((result: any) => {
-        this.products = result.data;
+      this.conditionString = params;
+      const sortBy = params['sortBy'];
+      const filterByBrand = params['brand'];
+      this.productService.getProductsByCategory(this.conditionString.category).subscribe((result: any) => {
+        if (result?.data?.length > 0) {
+          const res = [];
+          let data = this.productService.sortProducts(result.data, sortBy);
+          data = this.productService.filterByColor(data, this.conditionString.color);
+          // data = this.productService.filterByBrand(data, this.conditionString.brand);
+          data = this.productService.filterByBrand(data, filterByBrand);
+
+          // const res = [];
+          while (data?.length > 0) {
+            const chunk = data.splice(0, 16);
+            res.push(chunk);
+          }
+          this.productPaginated = res;
+          this.products = res.flat(1);
+          this.paginate = this.productService.getPager(this.products.length, this.pageNo);
+          this.displayProduct = this.productPaginated[parseInt(this.paginate.currentPage) - 1];
+          this.productPaginated.forEach((element, index) => {
+            if(index == parseInt(this.paginate.currentPage) - 1) {
+              this.displayingItems = element.length;
+            }
+          })
+        }
       })
     })
   }
@@ -139,6 +179,12 @@ export class CollectionLeftSidebarComponent implements OnInit {
 
   // product Pagination
   setPage(page: number) {
+    this.displayProduct = this.productPaginated[parseInt(this.paginate.currentPage) - 1];
+    this.productPaginated.forEach((element, index) => {
+      if(index == parseInt(this.paginate.currentPage) - 1) {
+        this.displayingItems = element.length;
+      }
+    })
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { page: page },

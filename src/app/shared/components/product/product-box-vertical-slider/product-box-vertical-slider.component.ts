@@ -21,9 +21,11 @@ export class ProductBoxVerticalSliderComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.productService.getProducts.subscribe(response => 
-      this.products = response.filter(item => item.type == this.type)      
-    );
+    this.productService.getAllProducts.subscribe(response => {
+      if (response?.length > 0) {
+        this.products = response.filter(item => item.type == this.type)
+      }
+    });
   }
 
 }

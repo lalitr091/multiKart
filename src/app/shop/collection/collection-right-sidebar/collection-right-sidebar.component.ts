@@ -25,6 +25,7 @@ export class CollectionRightSidebarComponent implements OnInit {
   public paginate: any = {}; // Pagination use only
   public sortBy: string; // Sorting Order
   public mobileSidebar: boolean = false;
+  public loader: boolean = true;
 
   constructor(private route: ActivatedRoute, private router: Router,
     private viewScroller: ViewportScroller, public productService: ProductService) {   
@@ -44,20 +45,18 @@ export class CollectionRightSidebarComponent implements OnInit {
 
         // Get Filtered Products..
         this.productService.filterProducts(this.tags).subscribe(response => { 
-          
+          if (response?.length > 0 ) {
           // Sorting Filter
           this.products = this.productService.sortProducts(response, this.sortBy);
-          
           // Category Filter
           if(params.category)
             this.products = this.products.filter(item => item.type == this.category);
-
           // Price Filter
           this.products = this.products.filter(item => item.price >= this.minPrice && item.price <= this.maxPrice) 
-    
           // Paginate Products
           this.paginate = this.productService.getPager(this.products.length, +this.pageNo);     // get paginate object from service
           this.products = this.products.slice(this.paginate.startIndex, this.paginate.endIndex + 1); // get current page of items
+          }
         })
       })
   }

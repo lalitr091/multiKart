@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { map, startWith, delay, catchError } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { Product } from '../classes/product';
@@ -21,7 +21,8 @@ export class ProductService {
 
   public Currency = { name: 'Dollar', currency: 'USD', price: 1 } // Default Currency
   public OpenCart: boolean = false;
-  public Products;
+  public Products:any;
+  public productRecords = new BehaviorSubject<any[]>([]);
   private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient,
@@ -58,7 +59,11 @@ export class ProductService {
 
   // Product
   private get products(): Observable<Product[]> {
-    this.Products = this.http.get<Product[]>(this.apiUrl + '/product/all').pipe(map(response => response));
+    this.Products = this.http.get<Product[]>(this.apiUrl + '/product/all').pipe(map((response:any) => {
+      this.productRecords.next(response?.data);
+      return response;
+    }));
+
     return this.Products;
   }
 
@@ -68,13 +73,14 @@ export class ProductService {
   }
 
   //  Get All Products
-  public get getAllProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.apiUrl + '/product/all');
+  public get getAllProducts(): Observable<any> {
+    return this.http.get<any>(this.apiUrl + '/product/all');
   }
 
   // Get Products by category
   public getProductsByCategory(category: string): Observable<any> {
     return this.http.get<any>(this.apiUrl + '/product/bycategories?category=' + category);
+    // return this.http.get<any>(this.apiUrl + '/product/all');
   }
 
   // Get Products By Slug
@@ -104,7 +110,7 @@ export class ProductService {
 
   // Add to Wishlist
   public addToWishlist(product): any {
-    const wishlistItem = state.wishlist.find(item => item.id === product.id)
+    const wishlistItem = state.wishlist.find((item: { id: any; }) => item.id === product.id)
     if (!wishlistItem) {
       state.wishlist.push({
         ...product
@@ -252,8 +258,9 @@ export class ProductService {
 
   // Get Product Filter
   public filterProducts(filter: any): Observable<Product[]> {
-    return this.products.pipe(map(product =>
-      product.filter((item: Product) => {
+    this.products;
+    return this.productRecords?.pipe(map(product =>
+      product?.filter((item: Product) => {
         if (!filter.length) return true
         const Tags = filter.some((prev) => { // Match Tags
           if (item.tags) {
@@ -267,9 +274,51 @@ export class ProductService {
     ));
   }
 
+  /**
+   * @method filterByColor
+   */
+  public filterByColor(products: Product[], payload: string): any {
+    if (!payload) {
+      return products;
+    } else {
+      let filterProducts = [];
+      products.filter((data: any) => {
+        if(data?.variants?.length > 0) {
+          data.variants.filter((variant: any) => {
+            if(variant.color == payload) {
+              filterProducts.push(data);
+            }
+          })
+        }
+      });
+      return filterProducts;
+    }
+  }
+  /**
+   * @method filterByBrand
+   */
+  public filterByBrand(products: Product[], payload: string): any {
+    if (!payload) {
+      return products;
+    } else {
+      // let filterProducts = [];
+      // products.filter((data: any) => {
+      //   if(data?.variants?.length > 0) {
+      //     data.variants.filter((variant: any) => {
+      //       if(variant.brand == payload) {
+      //         filterProducts.push(data);
+      //       }
+      //     })
+      //   }
+      // });
+      // return filterProducts;
+      return products.filter((product: Product) => product.brand === payload);
+    }
+  }
+
   // Sorting Filter
   public sortProducts(products: Product[], payload: string): any {
-
+    if (!payload) { return products; }
     if (payload === 'ascending') {
       return products.sort((a, b) => {
         if (a.id < b.id) {

@@ -10,13 +10,17 @@ export class PaginationComponent implements OnInit {
 
   @Input() products: Product[] = [];
   @Input() paginate: any = {};
+  @Input() displayingItems: number = 0;
 
   @Output() setPage  : EventEmitter<any> = new EventEmitter<any>();
     
   constructor() { 
   }
 
-  ngOnInit(): void {    
+  ngOnInit(): void {
+    console.log(this.paginate);
+    console.log(this.products);
+    
   }
 
   pageSet(page: number) {

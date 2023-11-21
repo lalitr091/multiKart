@@ -12,6 +12,7 @@ export class GridComponent implements OnInit {
   @Input() paginate: any = {};
   @Input() layoutView: string = 'grid-view';
   @Input() sortBy: string;
+  @Input() displayingItems: number = 0;
 
   @Output() setGrid: EventEmitter<any> = new EventEmitter<any>();
   @Output() setLayout: EventEmitter<any> = new EventEmitter<any>();
