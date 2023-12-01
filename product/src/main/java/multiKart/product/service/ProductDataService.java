@@ -16,4 +16,13 @@ public interface ProductDataService
 
 
     ApplicationResponse getProductById(String id);
+
+    boolean isVariantIdAvailable(String productId, int variantId);
+
+
+    boolean deleteVariantId(String productId, int variantId);
+
+    ApplicationResponse getProductByVariantId(String productId, int variantId);
+
+
 }

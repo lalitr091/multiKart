@@ -9,4 +9,10 @@ public interface CartDataService
 
 
     ApplicationResponse addToCart(Cart cart);
+
+    ApplicationResponse removeCartForUser(String userId);
+
+    ApplicationResponse getCartById(String userId);
+
+    ApplicationResponse getCartByVariantId(Cart cart);
 }

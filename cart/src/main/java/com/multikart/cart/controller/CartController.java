@@ -5,7 +5,9 @@ import com.multikart.cart.service.CartDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -16,7 +18,6 @@ public class CartController {
 
     @Operation(summary="remove product from cart ")
     @Tag(name= "cart remove")
-
     @DeleteMapping("/remove")
     public final ApplicationResponse removeFromCart(@RequestParam String variant_id ,@RequestParam String product_id, @RequestParam String user_id,@RequestParam String deleteType)
     {
@@ -29,8 +30,25 @@ public class CartController {
     @Tag(name= "add product to the cart")
 
     @PostMapping("/add")
-    public ApplicationResponse addToCart(@RequestBody Cart cart) {
+    public ApplicationResponse addToCart(@RequestBody Cart cart)
+    {
          return cartDataService.addToCart(cart);
 
     }
+
+    @Operation(summary = "Get the cart items by it's user id")
+    @GetMapping("/byuserid")
+    public final ApplicationResponse getCartByVariantId(@RequestBody Cart cart)
+    {
+        return cartDataService.getCartByVariantId(cart);
+    }
+
+    @Operation(summary = "empty the cart for a user") //used in order MS
+    @Tag(name = "empty cart")
+    @DeleteMapping("/empty")
+    public ApplicationResponse emptyCartForUser(@RequestParam String user_id)
+    {
+        return cartDataService.removeCartForUser(user_id);
+    }
+
 }

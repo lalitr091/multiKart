@@ -51,4 +51,27 @@ public class ProductController {
         return productDataService.getProductById(id);
     }
 
+
+    @GetMapping("/isVariantAvailable") //user in order MS
+    public final boolean isVariantIdAvailable(
+            @RequestParam String productId,
+            @RequestParam int variantId) {
+        return productDataService.isVariantIdAvailable(productId, variantId);
+    }
+    @Operation(summary = "Delete a variant ID mapping for a product") //used in order MS
+    @Tag(name = "Products")
+    @DeleteMapping("/deleteVariant")
+    public final boolean deleteVariantId(
+            @RequestParam String productId,
+            @RequestParam int variantId) {
+        return productDataService.deleteVariantId(productId, variantId);
+    }
+    @Operation(summary = "Get the products by product's id and varient's id") // create for cart MS to give custom response
+    @GetMapping("/byvarientid")
+    public final ApplicationResponse getProductsByVariantId( @RequestParam String productId,
+                                                          @RequestParam int variantId)
+    {
+        return productDataService.getProductByVariantId(productId, variantId);
+    }
+
 }
