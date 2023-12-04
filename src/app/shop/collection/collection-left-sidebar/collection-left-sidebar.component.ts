@@ -72,44 +72,64 @@ export class CollectionLeftSidebarComponent implements OnInit {
     })
   }
 
-  ngOnInit(): void {
-    // this.route.queryParams.subscribe(params => {
-    //   // Accessing the 'condition' query parameter
-    //   this.conditionString = params['category'];
-    //   this.productService.getProductsByCategory(this.conditionString).subscribe((result: any) => {
-    //     this.products = result.data;
-    //   })
-    // })
-
+   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       // Accessing the 'condition' query parameter
       this.conditionString = params;
       const sortBy = params['sortBy'];
       const filterByBrand = params['brand'];
-      this.productService.getProductsByCategory(this.conditionString.category).subscribe((result: any) => {
-        if (result?.data?.length > 0) {
-          const res = [];
-          let data = this.productService.sortProducts(result.data, sortBy);
-          data = this.productService.filterByColor(data, this.conditionString.color);
-          // data = this.productService.filterByBrand(data, this.conditionString.brand);
-          data = this.productService.filterByBrand(data, filterByBrand);
+      if ((this.conditionString.category === 'Men') || (this.conditionString.category === 'Women')) {
+        this.productService.getProductsByCategory(this.conditionString.category).subscribe((result: any) => {
+          if (result?.data?.length > 0) {
+            const res = [];
+            let data = this.productService.sortProducts(result.data, sortBy);
+            data = this.productService.filterByColor(data, this.conditionString.color);
+            // data = this.productService.filterByBrand(data, this.conditionString.brand);
+            data = this.productService.filterByBrand(data, filterByBrand);
 
-          // const res = [];
-          while (data?.length > 0) {
-            const chunk = data.splice(0, 16);
-            res.push(chunk);
-          }
-          this.productPaginated = res;
-          this.products = res.flat(1);
-          this.paginate = this.productService.getPager(this.products.length, this.pageNo);
-          this.displayProduct = this.productPaginated[parseInt(this.paginate.currentPage) - 1];
-          this.productPaginated.forEach((element, index) => {
-            if(index == parseInt(this.paginate.currentPage) - 1) {
-              this.displayingItems = element.length;
+            // const res = [];
+            while (data?.length > 0) {
+              const chunk = data.splice(0, 16);
+              res.push(chunk);
             }
-          })
-        }
-      })
+            this.productPaginated = res;
+            this.products = res.flat(1);
+            this.paginate = this.productService.getPager(this.products.length, this.pageNo);
+            this.displayProduct = this.productPaginated[parseInt(this.paginate.currentPage) - 1];
+            this.productPaginated.forEach((element, index) => {
+              if (index == parseInt(this.paginate.currentPage) - 1) {
+                this.displayingItems = element.length;
+              }
+            });
+          }
+        })
+      }
+      else if (this.conditionString.category === 'All Products') {
+        this.productService.getProducts.subscribe((result: any) => {
+          if (result?.length > 0) {
+            const res = [];
+            let data = this.productService.sortProducts(result, sortBy);
+            data = this.productService.filterByColor(data, this.conditionString.color);
+            // data = this.productService.filterByBrand(data, this.conditionString.brand);
+            data = this.productService.filterByBrand(data, filterByBrand);
+
+            // const res = [];
+            while (data?.length > 0) {
+              const chunk = data.splice(0, 16);
+              res.push(chunk);
+            }
+            this.productPaginated = res;
+            this.products = res.flat(1);
+            this.paginate = this.productService.getPager(this.products.length, this.pageNo);
+            this.displayProduct = this.productPaginated[parseInt(this.paginate.currentPage) - 1];
+            this.productPaginated.forEach((element, index) => {
+              if (index == parseInt(this.paginate.currentPage) - 1) {
+                this.displayingItems = element.length;
+              }
+            });
+          }
+        })
+      }
     })
   }
 

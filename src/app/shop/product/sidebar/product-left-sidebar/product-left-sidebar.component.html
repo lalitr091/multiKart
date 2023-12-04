@@ -78,7 +78,7 @@
                     <li [class]="color" [class.active]="activeSlide == i.toString()" 
                         *ngFor="let color of Color(product?.variants); index as i" 
                         [ngStyle]="{'background-color': color}"
-                        (click)="owlCar.to(activeSlide = i.toString())">
+                        (click)="owlCar.to(activeSlide = i.toString()); selectColor(i)">
                     </li>
                   </ul>
                   <app-stock-inventory [stock]="product?.stock"></app-stock-inventory>
@@ -119,8 +119,8 @@
                     </div>
                   </div>
                   <div class="product-buttons">
-                    <a href="javascrip:void(0)" class="btn btn-solid" [class.disabled]="counter > product.stock" (click)="addToCart(product)">add to cart</a>
-                    <a href="javascrip:void(0)" class="btn btn-solid" [class.disabled]="counter > product.stock" (click)="buyNow(product)">buy now</a>
+                    <button class="btn btn-solid" [class.disabled]="((counter > product.stock) || !selectedSize)" (click)="addToCart(product, selectedColor, selectedSize)">add to cart</button>
+                    <a href="javascrip:void(0)" class="btn btn-solid" [class.disabled]="(counter > product.stock) || !selectedSize" (click)="buyNow(product,  selectedColor, selectedSize)">buy now</a>
                   </div>
                   <div class="border-product">
                     <h6 class="product-title">product details</h6>

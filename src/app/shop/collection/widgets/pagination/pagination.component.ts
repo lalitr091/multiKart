@@ -17,10 +17,7 @@ export class PaginationComponent implements OnInit {
   constructor() { 
   }
 
-  ngOnInit(): void {
-    console.log(this.paginate);
-    console.log(this.products);
-    
+  ngOnInit(): void {    
   }
 
   pageSet(page: number) {
