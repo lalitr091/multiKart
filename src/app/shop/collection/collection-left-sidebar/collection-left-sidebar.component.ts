@@ -85,14 +85,15 @@ export class CollectionLeftSidebarComponent implements OnInit {
       // Accessing the 'condition' query parameter
       this.conditionString = params;
       const sortBy = params['sortBy'];
-      const filterByBrand = params['brand'];
+      // const filterByBrand = params['brand'];
       this.productService.getProductsByCategory(this.conditionString.category).subscribe((result: any) => {
         if (result?.data?.length > 0) {
           const res = [];
           let data = this.productService.sortProducts(result.data, sortBy);
           data = this.productService.filterByColor(data, this.conditionString.color);
-          // data = this.productService.filterByBrand(data, this.conditionString.brand);
-          data = this.productService.filterByBrand(data, filterByBrand);
+          data = this.productService.filterBySize(data, this.conditionString.size);
+          data = this.productService.filterByBrand(data, this.conditionString.brand);
+          data = this.productService.filterByPriceRange(data, this.minPrice, this.maxPrice);
 
           // const res = [];
           while (data?.length > 0) {
@@ -142,7 +143,7 @@ export class CollectionLeftSidebarComponent implements OnInit {
   }
 
   // Remove Tag
-  removeTag(tag) {
+  removeTag(tag: any) {
 
     this.brands = this.brands.filter(val => val !== tag);
     this.colors = this.colors.filter(val => val !== tag);
