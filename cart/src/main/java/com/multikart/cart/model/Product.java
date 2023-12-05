@@ -1,5 +1,4 @@
 package com.multikart.cart.model;
-
 import lombok.Data;
 
 @Data

@@ -1,5 +1,4 @@
 package com.multikart.cart.Repository;
-
 import com.multikart.cart.model.Cart;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;

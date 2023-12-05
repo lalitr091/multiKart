@@ -1,36 +1,35 @@
 package multiKart.product.service;
+import lombok.extern.slf4j.Slf4j;
 import multiKart.product.Repository.CategoryRepo;
+import multiKart.product.Repository.ProductRepo;
 import multiKart.product.common.Constants;
 import multiKart.product.model.ApplicationResponse;
 import multiKart.product.model.Category;
 import multiKart.product.model.Product;
-import multiKart.product.Repository.ProductRepo;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class  ProductDataServiceImpl implements ProductDataService
-{
+public class ProductDataServiceImpl implements ProductDataService {
     @Autowired
     CategoryRepo categoryRepo;
     @Autowired
     ProductRepo productRepo;
 
     @Override
-     public ApplicationResponse getCategories() {
+    public ApplicationResponse getCategories() {
+        ApplicationResponse result;
         try {
-            List<Category> categoryData = (ArrayList<Category>) categoryRepo.findAll();
-            ApplicationResponse<Category> applicationResponse = new ApplicationResponse<>();
+            List<Category> categoryData = categoryRepo.findAll();
+            ApplicationResponse applicationResponse = new ApplicationResponse();
             applicationResponse.setStatus(Constants.OK);
             applicationResponse.setMessage(Constants.OK_MESSAGE);
             applicationResponse.setData(categoryData);
-            return applicationResponse;
+            result = applicationResponse;
         } catch (Exception e) {
             log.error("An error occurred while fetching categories", e);
 
@@ -39,17 +38,20 @@ public class  ProductDataServiceImpl implements ProductDataService
             errorResponse.setMessage("An error occurred while fetching categories");
             errorResponse.setData(null);
 
-            return errorResponse;
+            result = errorResponse;
         }
+        return result;
     }
 
 
     @Override
     public ApplicationResponse<Product> getProductsByCategory(String category) {
+        ApplicationResponse applicationResponse = new ApplicationResponse();
+
         try {
-            List<Product> subCategoryData = (ArrayList<Product>) productRepo.findByCategoryIgnoreCase(category);
-            ApplicationResponse<Product> applicationResponse = new ApplicationResponse<>();
-            if (subCategoryData == null || subCategoryData.size() == 0) {
+            List<Product> subCategoryData = productRepo.findByCategoryIgnoreCase(category);
+
+            if (subCategoryData == null || subCategoryData.isEmpty()) {
                 applicationResponse.setStatus(Constants.NO_CONTENT);
                 applicationResponse.setMessage(Constants.NO_CONTENT_MESSAGE);
             } else {
@@ -61,20 +63,18 @@ public class  ProductDataServiceImpl implements ProductDataService
         } catch (Exception e) {
             log.error("An error occurred while fetching products by category", e);
 
-            ApplicationResponse<Product> errorResponse = new ApplicationResponse<>();
-            errorResponse.setStatus(Constants.INTERNAL_SERVER_ERROR);
-            errorResponse.setMessage("An error occurred while fetching products by category");
-            errorResponse.setData(null);
-
-            return errorResponse;
+            //ApplicationResponse errorResponse = new ApplicationResponse();
+            applicationResponse.setStatus(Constants.INTERNAL_SERVER_ERROR);
+            applicationResponse.setMessage("An error occurred while fetching products by category");
+            applicationResponse.setData(null);
+            return applicationResponse;
         }
     }
 
     @Override
     public List<Product> getProductsAll() {
         try {
-            List<Product> products = (ArrayList<Product>) productRepo.findAll();
-            return products;
+            return productRepo.findAll();
         } catch (Exception e) {
             log.error("An error occurred while fetching all products", e);
             return Collections.emptyList();
@@ -85,7 +85,7 @@ public class  ProductDataServiceImpl implements ProductDataService
     @Override
     public ApplicationResponse<Product> getProductById(String id) {
         try {
-            List<Product> products = (ArrayList<Product>) productRepo.findAllById(Collections.singleton(id));
+            List<Product> products = productRepo.findAllById(Collections.singleton(id));
             ApplicationResponse<Product> applicationResponse = new ApplicationResponse<>();
             applicationResponse.setStatus(Constants.OK);
             applicationResponse.setMessage(Constants.OK_MESSAGE);
@@ -104,51 +104,53 @@ public class  ProductDataServiceImpl implements ProductDataService
 
     }
 
-
+    @Override
+    public void saveProduct(Product product) {
+        productRepo.save(product);
+    }
 
     @Override
-        public ApplicationResponse<Product> searchProducts(String keyword) {
-            try {
-                List<Product> searchResult = (ArrayList<Product>) productRepo.findByTitleContaining(keyword);
-                ApplicationResponse<Product> applicationResponse = new ApplicationResponse();
-
-                if (searchResult == null || searchResult.isEmpty())
-                {
-                    log.info("No products found for keyword: {}", keyword);
-
-                }
-
-                log.info("{} Search Result found for keyword -> {}", searchResult.size(), keyword);
-                applicationResponse.setStatus(Constants.OK);
-                applicationResponse.setMessage(Constants.OK_MESSAGE);
-                applicationResponse.setData(searchResult);
-
-                return applicationResponse;
-            } catch (Exception e) {
-                log.error("An error occurred while searching for products", e);
-
-                ApplicationResponse<Product> errorResponse = new ApplicationResponse<>();
-                errorResponse.setStatus(Constants.INTERNAL_SERVER_ERROR);
-                errorResponse.setMessage("An error occurred while searching for products");
-                errorResponse.setData(null);
-
-                return errorResponse;
-            }
-        }
-
-    @Override
-    public boolean isVariantIdAvailable(String productId, int variantId) {
+    public ApplicationResponse<Product> searchProducts(String keyword) {
+        ApplicationResponse applicationResponse = new ApplicationResponse();
         try {
+            List<Product> searchResult = productRepo.findByTitleContaining(keyword);
+            if (searchResult == null || searchResult.isEmpty()) {
+                log.info("No products found for keyword: {}", keyword);
 
+            }
+
+            assert searchResult != null;
+            log.info("{} Search Result found for keyword -> {}", searchResult.size(), keyword);
+            applicationResponse.setStatus(Constants.OK);
+            applicationResponse.setMessage(Constants.OK_MESSAGE);
+            applicationResponse.setData(searchResult);
+
+            return applicationResponse;
+        } catch (Exception e) {
+            log.error("An error occurred while searching for products", e);
+            applicationResponse.setStatus(Constants.INTERNAL_SERVER_ERROR);
+            applicationResponse.setMessage("An error occurred while searching for products");
+            applicationResponse.setData(null);
+            return applicationResponse;
+        }
+    }
+
+    @Override
+    public boolean isVariantIdAvailable(String productId, int variantId, int qty) {
+        try {
             Product product = productRepo.findById(productId).orElse(null);
 
             if (product != null && product.getVariants() != null) {
 
                 return product.getVariants().stream()
-                        .anyMatch(variant -> variant.getVariant_id() == variantId);
-            }
-            else {
-                log.warn("Product or variants not found for productId: {}", productId);
+                        .filter(variant -> variant.getVariant_id() == variantId)
+                        .anyMatch(variant -> variant.getVariant_stock_qty() >= qty);
+            } else {
+                if (product == null) {
+                    log.warn("Product not found for productId: {}", productId);
+                } else {
+                    log.warn("Variants not found for productId: {}", productId);
+                }
                 return false;
             }
         } catch (Exception e) {
@@ -158,60 +160,81 @@ public class  ProductDataServiceImpl implements ProductDataService
     }
 
     @Override
-    public boolean deleteVariantId(String productId, int variantId)
-    {
+    public ApplicationResponse updateVariant(String productId, int variantId, int requestQty) {
+        ApplicationResponse response = new ApplicationResponse();
         try {
             Product product = productRepo.findById(productId).orElse(null);
 
             if (product != null && product.getVariants() != null) {
                 List<Product.Variant> variants = product.getVariants();
 
-                if (variants != null) {
 
-                    variants.removeIf(variant -> {
-                        if (variant.getVariant_id() == variantId) {
+                for (Product.Variant variant : variants) {
+                    if (variant.getVariant_id() == variantId) {
+                        int currentQty = variant.getVariant_stock_qty();
 
-                            product.setStock(product.getStock() - 1);
-                            return true;
+                        if (requestQty > currentQty) // Check if the requested quantity is greater than the available stock
+                        {
+                            log.warn("Cannot update {} items for variantId {}. Available stock is only {}", requestQty, variantId, currentQty);
+
+                            response.setStatus(Constants.OK);
+                            response.setMessage("Cannot update variant quantity. Requested quantity exceeds available stock.");
+                            response.setData(null);
+
+                            return response;
                         }
-                        return false;
-                    });
 
-
-                    productRepo.save(product);
-                    return true;
-                } else {
-                    log.warn("Variants not found for productId: {}", productId);
-                    return false;
+                        variant.setVariant_stock_qty(currentQty - requestQty); // Update the variant stock quantity
+                        product.setStock(product.getStock() - requestQty);  // Update the product stock
+                        productRepo.save(product);
+                        response.setStatus(Constants.OK);
+                        response.setMessage(Constants.OK_MESSAGE);
+                        response.setData(null);
+                        return response;
+                    }
                 }
+
+                log.warn("Variant not found for variantId: {} in productId: {}", variantId, productId);
+                response.setStatus(Constants.NO_CONTENT);
+                response.setMessage("Variant not found for given productId and variantId.");
+
             } else {
                 log.warn("Product not found for productId: {}", productId);
-                return false;
+
+                response.setStatus(Constants.NO_CONTENT);
+                response.setMessage("Product not found for given productId.");
+
             }
+            response.setData(null);
+            return response;
         } catch (Exception e) {
-            log.error("An error occurred while deleting variantId", e);
-            return false;
+            log.error("An error occurred while updating variant stock quantity", e);
+
+            response.setStatus(Constants.INTERNAL_SERVER_ERROR);
+            response.setMessage("An error occurred while updating variant stock quantity.");
+            response.setData(null);
+
+            return response;
         }
     }
+
 
     @Override
     public ApplicationResponse<Product> getProductByVariantId(String productId, int variantId) {
         try {
             Product product = productRepo.findById(productId).orElse(null);
 
-            if (product != null && product.getVariants() != null)
-            {
+            if (product != null && product.getVariants() != null) {
                 List<Product.Variant> matchingVariants = product.getVariants().stream()
                         .filter(variant -> variant.getVariant_id() == variantId)
                         .collect(Collectors.toList());
 
-                if (!matchingVariants.isEmpty())
-                {
+                if (!matchingVariants.isEmpty()) {
                     product.setVariants(matchingVariants);
                     ApplicationResponse<Product> applicationResponse = new ApplicationResponse<>();
                     applicationResponse.setStatus(Constants.OK);
                     applicationResponse.setMessage(Constants.OK_MESSAGE);
-                   // applicationResponse.setData((List<Product>) product);
+                    // applicationResponse.setData((List<Product>) product);
                     applicationResponse.setData(Collections.singletonList(product));
 
                     return applicationResponse;
@@ -238,9 +261,6 @@ public class  ProductDataServiceImpl implements ProductDataService
             return errorResponse;
         }
     }
-
-
-
 
 
 }

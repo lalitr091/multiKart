@@ -171,12 +171,7 @@ public class CartDataServiceImpl implements CartDataService {
             }
         }
 
-    @Override
-    public ApplicationResponse getCartById(String userId) {
-        Cart existingCart = cartRepo.findCartByUserid(userId);
 
-        return null;
-    }
 
     @Override
     public ApplicationResponse getCartByVariantId(Cart cart) {
@@ -186,7 +181,7 @@ public class CartDataServiceImpl implements CartDataService {
         for (Cart.CartItem cartItem : cartItems) {
             try {
                 String productId = cartItem.getProductid();
-                String productApiUrl = productMicroserviceBaseUrl + "byvarientid";
+                String productApiUrl = productMicroserviceBaseUrl + "byvarientid";//byvarientid
 
 
                 UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(productApiUrl)
@@ -207,8 +202,6 @@ public class CartDataServiceImpl implements CartDataService {
                 log.error("An error occurred while fetching product details", e);
             }
         }
-
-        // Create a response with the product details
         ApplicationResponse<List<Product>> response = new ApplicationResponse<>();
         response.setStatus(Constants.OK);
         response.setMessage(Constants.OK_MESSAGE);

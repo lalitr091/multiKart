@@ -17,12 +17,13 @@ public interface ProductDataService
 
     ApplicationResponse getProductById(String id);
 
-    boolean isVariantIdAvailable(String productId, int variantId);
+    boolean isVariantIdAvailable(String productId, int variantId,int qty);
 
 
-    boolean deleteVariantId(String productId, int variantId);
+    ApplicationResponse updateVariant(String productId, int variantId, int requestQty);
 
     ApplicationResponse getProductByVariantId(String productId, int variantId);
+    void saveProduct(Product existingProduct);
 
 
 }

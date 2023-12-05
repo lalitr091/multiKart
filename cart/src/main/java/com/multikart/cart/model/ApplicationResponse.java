@@ -1,8 +1,5 @@
 package com.multikart.cart.model;
-
 import lombok.Data;
-
-import java.util.Collection;
 import java.util.List;
 
 

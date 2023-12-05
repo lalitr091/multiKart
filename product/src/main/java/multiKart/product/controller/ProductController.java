@@ -39,15 +39,14 @@ public class ProductController {
     @Operation(summary = "Search the products by keyword in columns title,description,brand ")
     @Tag(name = "Products")
     @GetMapping("/search")
-    public final ApplicationResponse searchProductsByName(@RequestParam String keyword)
-    {
+    public final ApplicationResponse searchProductsByName(@RequestParam String keyword) {
         return productDataService.searchProducts(keyword);
 
     }
+
     @Operation(summary = "Get the products by it's id")
     @GetMapping("/byid")
-    public final ApplicationResponse getProductsById(@RequestParam String id)
-    {
+    public final ApplicationResponse getProductsById(@RequestParam String id) {
         return productDataService.getProductById(id);
     }
 
@@ -55,23 +54,27 @@ public class ProductController {
     @GetMapping("/isVariantAvailable") //user in order MS
     public final boolean isVariantIdAvailable(
             @RequestParam String productId,
-            @RequestParam int variantId) {
-        return productDataService.isVariantIdAvailable(productId, variantId);
+            @RequestParam int variantId,
+            @RequestParam int qty) {
+        return productDataService.isVariantIdAvailable(productId, variantId,qty);
     }
-    @Operation(summary = "Delete a variant ID mapping for a product") //used in order MS
+
+    @Operation(summary = "update variant qty for a product after order done") //used in order MS
     @Tag(name = "Products")
-    @DeleteMapping("/deleteVariant")
-    public final boolean deleteVariantId(
+    @PutMapping("/updateVariantqty")
+    public final ApplicationResponse deleteVariantId(
             @RequestParam String productId,
-            @RequestParam int variantId) {
-        return productDataService.deleteVariantId(productId, variantId);
+            @RequestParam int variantId,
+            @RequestParam int requestQty) {
+        return productDataService.updateVariant(productId, variantId,requestQty);
     }
-    @Operation(summary = "Get the products by product's id and varient's id") // create for cart MS to give custom response
-    @GetMapping("/byvarientid")
-    public final ApplicationResponse getProductsByVariantId( @RequestParam String productId,
-                                                          @RequestParam int variantId)
-    {
+
+    @Operation(summary = "Get the products by product's id and varient's id")// created for cart MS to give custom response
+    @GetMapping("/byvariantid")
+    public final ApplicationResponse getProductsByVariantId(@RequestParam String productId,
+                                                            @RequestParam int variantId) {
         return productDataService.getProductByVariantId(productId, variantId);
     }
+
 
 }

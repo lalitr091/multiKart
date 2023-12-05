@@ -12,7 +12,5 @@ public interface CartDataService
 
     ApplicationResponse removeCartForUser(String userId);
 
-    ApplicationResponse getCartById(String userId);
-
     ApplicationResponse getCartByVariantId(Cart cart);
 }
