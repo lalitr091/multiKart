@@ -24,10 +24,11 @@ export class ProductLeftSidebarComponent implements OnInit {
   public ProductDetailsMainSliderConfig: any = ProductDetailsMainSlider;
   public ProductDetailsThumbConfig: any = ProductDetailsThumbSlider;
   productName: any;
+  selectedColor: any;
 
   constructor(private route: ActivatedRoute, private router: Router,
     public productService: ProductService) {
-      // this.route.data.subscribe(response => this.product = response.data);
+    // this.route.data.subscribe(response => this.product = response.data);
   }
 
   ngOnInit(): void {
@@ -40,6 +41,12 @@ export class ProductLeftSidebarComponent implements OnInit {
     });
   }
 
+  //On selecting different Colors 
+  selectColor(index: number) {
+    this.activeSlide = index.toString();
+    this.selectedColor = this.Color(this.product?.variants)[index];
+  }
+
   // Get Product Color
   Color(variants) {
     const uniqColor = []
@@ -47,6 +54,9 @@ export class ProductLeftSidebarComponent implements OnInit {
       for (let i = 0; i < Object?.keys(variants).length; i++) {
         if (uniqColor.indexOf(variants[i].color) === -1 && variants[i].color) {
           uniqColor.push(variants[i].color)
+        }
+        if (i === this.activeSlide) {
+          this.selectedColor = variants[i].color;
         }
       }
     }
@@ -81,17 +91,31 @@ export class ProductLeftSidebarComponent implements OnInit {
   }
 
   // Add to cart
-  async addToCart(product: any) {
+  async addToCart(product: any, selectedColor, selectedSize) {
+    product?.variants.forEach(element => {
+      if ((element.color === selectedColor) && (element.size === selectedSize)) {
+        const selectedVariant: string = 'selectedVariant'; // Replace 'someKey' with the actual key you want to use
+        product[selectedVariant] = product[selectedVariant] || [];
+        product[selectedVariant].push(element);
+      }
+    });
     product.quantity = this.counter || 1;
-    const status = await this.productService.addToCart(product);
+    const status = await this.productService.addToCart(product, selectedColor, selectedSize);
     if (status)
       this.router.navigate(['/shop/cart']);
   }
 
   // Buy Now
-  async buyNow(product: any) {
+  async buyNow(product: any, selectedColor, selectedSize) {
+    product?.variants.forEach(element => {
+      if ((element.color === selectedColor) && (element.size === selectedSize)) {
+        const selectedVariant: string = 'selectedVariant'; // Replace 'someKey' with the actual key you want to use
+        product[selectedVariant] = product[selectedVariant] || [];
+        product[selectedVariant].push(element);
+      }
+    });
     product.quantity = this.counter || 1;
-    const status = await this.productService.addToCart(product);
+    const status = await this.productService.addToCart(product, selectedColor, selectedSize);
     if (status)
       this.router.navigate(['/shop/checkout']);
   }

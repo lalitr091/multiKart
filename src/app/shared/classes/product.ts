@@ -1,5 +1,8 @@
 // Products
 export interface Product {
+    data?: any;
+    selectedVariant?: any;
+    product_id?: string;
     id?: number;
     title?: string;
     description?: string;
@@ -25,6 +28,7 @@ export interface Variants {
     size?: string;
     color?: string;
     image_id?: number;
+    variantid_qty?: number;
 }
 
 export interface Images {

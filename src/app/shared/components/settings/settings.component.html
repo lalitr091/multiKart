@@ -54,11 +54,11 @@
       <ul class="show-div shopping-cart" *ngIf='!products.length'>
         <h5>Your cart is currently empty.</h5>
       </ul>
-      <ul class="show-div shopping-cart" *ngIf='products.length'>
+      <ul class="show-div shopping-cart" *ngIf='products'>
         <li *ngFor="let product of products">
           <div class="media">
             <a [routerLink]="['/shop/product/left/sidebar/', product.title.replace(' ', '-')]">
-              <img class="me-3" [src]="product?.images[0].src" [alt]="product?.images[0].alt">
+              <img class="me-3" [src]="product?.selectedImages[0].src" [alt]="product?.selectedImages[0].alt">
             </a>
             <div class="media-body">
               <a [routerLink]="['/shop/product/left/sidebar/', product.title.replace(' ', '-')]">
@@ -66,7 +66,7 @@
               </a>
               <h4>
                 <span>
-                  {{ product?.quantity }} x 
+                  {{ product?.variants[0].variantid_qty }} x 
                   {{ product?.price * productService?.Currency.price | discount:product | currency:productService?.Currency.currency:'symbol' }}
                 </span>
               </h4>
@@ -78,7 +78,7 @@
         </li>
         <li>
           <div class="total">
-            <h5>subtotal : <span>{{ getTotal | async | currency:productService?.Currency.currency:'symbol' }}</span></h5>
+            <h5>subtotal : <span>{{ totalAmount | currency:productService?.Currency.currency:'symbol' }}</span></h5>
           </div>
         </li>
         <li>

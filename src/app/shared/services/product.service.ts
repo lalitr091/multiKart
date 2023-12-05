@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { map, startWith, delay, catchError } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { Product } from '../classes/product';
-import { log } from 'console';
 import { environment } from 'src/environments/environment';
 
 const state = {
@@ -21,13 +20,17 @@ export class ProductService {
 
   public Currency = { name: 'Dollar', currency: 'USD', price: 1 } // Default Currency
   public OpenCart: boolean = false;
-  public Products:any;
+  public Products: any;
   public productRecords = new BehaviorSubject<any[]>([]);
   private apiUrl = environment.apiUrl;
+  private cartUrl = environment.cartUrl;
+  variantid: any;
+  private cartUpdateSubject = new Subject<void>();
+  cartUpdate$ = this.cartUpdateSubject.asObservable();
 
   constructor(private http: HttpClient,
-    private toastrService: ToastrService) {      
-     }
+    private toastrService: ToastrService) {
+  }
 
   /*
     ---------------------------------------------
@@ -59,7 +62,7 @@ export class ProductService {
 
   // Product
   private get products(): Observable<Product[]> {
-    this.Products = this.http.get<Product[]>(this.apiUrl + '/product/all').pipe(map((response:any) => {
+    this.Products = this.http.get<Product[]>(this.apiUrl + '/product/all').pipe(map((response: any) => {
       this.productRecords.next(response?.data);
       return response;
     }));
@@ -171,6 +174,14 @@ export class ProductService {
     ---------------------------------------------
   */
 
+
+  // Get Cart Items
+  public getCartItems(userId): Observable<Product[]> {
+    return this.http.get<Product[]>(this.cartUrl + '/cart/byuserid?userId=' + userId).pipe(
+      map((response: any) => response?.data[0])
+    );
+  }
+
   // Get Cart Items
   public get cartItems(): Observable<Product[]> {
     const itemsStream = new Observable(observer => {
@@ -181,41 +192,70 @@ export class ProductService {
   }
 
   // Add to Cart
-  public addToCart(product): any {
+  public addToCart(product, selectedColor?, selectedSize?): any {
     const cartItem = state.cart.find(item => item.id === product.id);
     const qty = product.quantity ? product.quantity : 1;
     const items = cartItem ? cartItem : product;
     const stock = this.calculateStockCounts(items, qty);
-
+    product?.variants.forEach(element => {
+      if (selectedColor === element.color && selectedSize === element.size) {
+        this.variantid = element.variant_id;
+      }
+    });
+    const request =
+    {
+      "cartItems": [
+        {
+          "variantid_qty": product.quantity,
+          "variantid": this.variantid,
+          "productid": product.product_id
+        }
+      ],
+      "userid": "1234"
+    }
     if (!stock) return false
 
-    if (cartItem) {
+    if (cartItem == !undefined) {
       cartItem.quantity += qty
     } else {
-      state.cart.push({
-        ...product,
-        quantity: qty
-      })
+      this.http.post(this.cartUrl + '/cart/add', request)
+        .subscribe(
+          (response) => {
+            if (response) {
+              this.cartUpdateSubject.next();
+              return response;
+            }
+          },
+          (error) => {
+          }
+        );
     }
-
     this.OpenCart = true; // If we use cart variation modal
-    localStorage.setItem("cartItems", JSON.stringify(state.cart));
     return true;
   }
 
   // Update Cart Quantity
-  public updateCartQuantity(product: Product, quantity: number): Product | boolean {
-    return state.cart.find((items, index) => {
-      if (items.id === product.id) {
-        const qty = state.cart[index].quantity + quantity
-        const stock = this.calculateStockCounts(state.cart[index], quantity)
-        if (qty !== 0 && stock) {
-          state.cart[index].quantity = qty
+  public updateCartQuantity(product: Product, quantity: number, deleteType, userId) {
+    const variant_id = product.variants[0].variant_id;
+    const params = new HttpParams()
+      .set('variant_id', variant_id)
+      .set('product_id', product.product_id)
+      .set('user_id', '1234')
+      .set('deleteType', deleteType);
+
+    // Make the DELETE request with query parameters
+    this.http.delete(this.cartUrl + '/cart/remove', { params })
+      .subscribe(
+        (response) => {
+          if (response) {
+            this.cartUpdateSubject.next();
+          }
+        },
+        (error) => {
+        },
+        () => {
         }
-        localStorage.setItem("cartItems", JSON.stringify(state.cart));
-        return true
-      }
-    })
+      );
   }
 
   // Calculate Stock Counts
@@ -230,22 +270,40 @@ export class ProductService {
   }
 
   // Remove Cart items
-  public removeCartItem(product: Product): any {
-    const index = state.cart.indexOf(product);
-    state.cart.splice(index, 1);
-    localStorage.setItem("cartItems", JSON.stringify(state.cart));
-    return true
+  public removeCartItem(product: Product, deleteType?, userId?): any {
+    // const index = state.cart.indexOf(product);
+    // state.cart.splice(index, 1);
+    const variant_id = product.variants[0].variant_id
+
+    // Define the query parameters
+    const params = new HttpParams()
+      .set('variant_id', variant_id)
+      .set('product_id', product.product_id)
+      .set('user_id', '1234')
+      .set('deleteType', deleteType);
+
+    // Make the DELETE request with query parameters
+    this.http.delete(this.cartUrl + '/cart/remove', { params })
+      .subscribe(
+        (response) => {
+          if (response) {
+            this.cartUpdateSubject.next();
+          }
+        },
+        (error) => {
+        }
+      );
   }
 
   // Total amount 
   public cartTotalAmount(): Observable<number> {
-    return this.cartItems.pipe(map((product: Product[]) => {
+    return this.getCartItems(1234).pipe(map((product) => {
       return product.reduce((prev, curr: Product) => {
         let price = curr.price;
         if (curr.discount) {
           price = curr.price - (curr.price * curr.discount / 100)
         }
-        return (prev + price * curr.quantity) * this.Currency.price;
+        return (prev + price * curr.variants[0].variantid_qty) * this.Currency.price;
       }, 0);
     }));
   }

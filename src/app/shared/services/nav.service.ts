@@ -45,7 +45,7 @@ export class NavService {
 		},
 		{
 			title: 'Shop', type: 'sub', active: false, children: [
-				{ path: '/shop/collection/no/sidebar', title: 'no sidebar', type: 'link' },
+				{ path: '/shop/collection/left/sidebar', title: 'All Products', type: 'link' },
 			]
 		}
 	];
