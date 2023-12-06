@@ -181,7 +181,7 @@ public class CartDataServiceImpl implements CartDataService {
         for (Cart.CartItem cartItem : cartItems) {
             try {
                 String productId = cartItem.getProductid();
-                String productApiUrl = productMicroserviceBaseUrl + "byvarientid";//byvarientid
+                String productApiUrl = productMicroserviceBaseUrl + "byvariantid";//byvarientid
 
 
                 UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(productApiUrl)
