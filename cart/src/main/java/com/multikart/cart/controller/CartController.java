@@ -37,9 +37,9 @@ public class CartController {
 
     @Operation(summary = "Get the cart items by it's user id")
     @GetMapping("/byuserid")
-    public final ApplicationResponse getCartByVariantId(@RequestBody Cart cart)
+    public final ApplicationResponse getCartByVariantId(@RequestParam String userId)
     {
-        return cartDataService.getCartByVariantId(cart);
+        return cartDataService.getCartByVariantId(userId);
     }
 
     @Operation(summary = "empty the cart for a user") //used in order MS

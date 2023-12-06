@@ -1,4 +1,5 @@
 package com.multikart.cart.service;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.multikart.cart.Repository.CartRepo;
 import com.multikart.cart.common.Constants;
 import com.multikart.cart.model.ApplicationResponse;
@@ -7,6 +8,8 @@ import com.multikart.cart.model.Product;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -174,42 +177,55 @@ public class CartDataServiceImpl implements CartDataService {
 
 
     @Override
-    public ApplicationResponse getCartByVariantId(Cart cart) {
-        List<Cart.CartItem> cartItems = cart.getCartItems();
+    public ApplicationResponse getCartByVariantId(String userId) {
+        Cart existingCart = null;
+        try {
+            existingCart = cartRepo.findCartByUserid(userId);
+        } catch (Exception e) {
+            log.warn("cart is not found with userId {}", userId);
+        }
         List<Product> products = new ArrayList<>();
 
-        for (Cart.CartItem cartItem : cartItems) {
+        for (Cart.CartItem cartItem : existingCart.getCartItems()) {
             try {
+                Integer variantIDQty = cartItem.getVariantid_qty();
                 String productId = cartItem.getProductid();
-                String productApiUrl = productMicroserviceBaseUrl + "byvariantid";//byvarientid
-
+                String productApiUrl = "http://localhost:8085/multikart/v1/product/byvariantid";
 
                 UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(productApiUrl)
                         .queryParam("productId", productId)
                         .queryParam("variantId", cartItem.getVariantid());
 
-                ApplicationResponse<Product> productResponse = restTemplate.getForObject(builder.toUriString(), ApplicationResponse.class);
+                ApplicationResponse<Map<String, Object>> productResponse = restTemplate.exchange(
+                        builder.toUriString(),
+                        HttpMethod.GET,
+                        null,
+                        new ParameterizedTypeReference<ApplicationResponse<Map<String, Object>>>() {
+                        }
+                ).getBody();
 
-                if (productResponse != null && productResponse.getStatus().equals(Constants.OK))
-                {
-                    products.addAll(productResponse.getData());
-                }
-                else
-                {
+                if (productResponse != null && productResponse.getStatus().equals(Constants.OK)) {
+                    Map<String, Object> productMap = productResponse.getData().get(0);
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Product product = objectMapper.convertValue(productMap, Product.class);
+                    product.getVariants().get(0).setVariant_stock_qty(variantIDQty);
+                    products.add(product);
+                } else {
                     log.warn("Failed to retrieve product details for productId: {} and variantId: {}", productId, cartItem.getVariantid());
                 }
             } catch (Exception e) {
                 log.error("An error occurred while fetching product details", e);
             }
         }
+
+// Create a response with the product details
         ApplicationResponse<List<Product>> response = new ApplicationResponse<>();
         response.setStatus(Constants.OK);
         response.setMessage(Constants.OK_MESSAGE);
         response.setData(Collections.singletonList(products));
 
         return response;
-    }
-}
+    }}
 
 
 
