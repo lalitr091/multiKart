@@ -194,7 +194,7 @@ public class CartDataServiceImpl implements CartDataService {
 
         for (Cart.CartItem cartItem : existingCart.getCartItems()) {
             try {
-                Integer variantIDQty = cartItem.getVariantid_qty();
+                int variantIDQty = cartItem.getVariantid_qty();
                 String productId = cartItem.getProductid();
                 String productApiUrl = "http://localhost:8085/multikart/v1/product/byvariantid";
 
