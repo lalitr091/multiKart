@@ -31,6 +31,7 @@ public class Product {
         private String size;
         private String color;
         private int image_id;
+        private  String variantid_qty;
     }
 
     @Data

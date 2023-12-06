@@ -178,12 +178,18 @@ public class CartDataServiceImpl implements CartDataService {
 
     @Override
     public ApplicationResponse getCartByVariantId(String userId) {
+        ApplicationResponse response = new ApplicationResponse();
         Cart existingCart = null;
-        try {
+
             existingCart = cartRepo.findCartByUserid(userId);
-        } catch (Exception e) {
+            if(existingCart==null)
+            {
             log.warn("cart is not found with userId {}", userId);
-        }
+            response.setData(null);
+            response.setStatus(Constants.NO_CONTENT);
+            response.setMessage(Constants.NO_CONTENT_MESSAGE);
+            return  response;
+           }
         List<Product> products = new ArrayList<>();
 
         for (Cart.CartItem cartItem : existingCart.getCartItems()) {
@@ -208,7 +214,8 @@ public class CartDataServiceImpl implements CartDataService {
                     Map<String, Object> productMap = productResponse.getData().get(0);
                     ObjectMapper objectMapper = new ObjectMapper();
                     Product product = objectMapper.convertValue(productMap, Product.class);
-                    product.getVariants().get(0).setVariant_stock_qty(variantIDQty);
+                    product.getVariants().get(0).setVariantid_qty(String.valueOf(variantIDQty));
+                    product.getVariants().get(0).setVariant_stock_qty(10);
                     products.add(product);
                 } else {
                     log.warn("Failed to retrieve product details for productId: {} and variantId: {}", productId, cartItem.getVariantid());
@@ -218,8 +225,6 @@ public class CartDataServiceImpl implements CartDataService {
             }
         }
 
-// Create a response with the product details
-        ApplicationResponse<List<Product>> response = new ApplicationResponse<>();
         response.setStatus(Constants.OK);
         response.setMessage(Constants.OK_MESSAGE);
         response.setData(Collections.singletonList(products));
