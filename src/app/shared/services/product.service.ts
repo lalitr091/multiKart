@@ -343,47 +343,95 @@ export class ProductService {
     ));
   }
 
-  /**
-   * @method filterByColor
-   */
-  public filterByColor(products: Product[], payload: string): any {
-    if (!payload) {
-      return products;
-    } else {
-      let filterProducts = [];
-      products.filter((data: any) => {
-        if (data?.variants?.length > 0) {
-          data.variants.filter((variant: any) => {
-            if (variant.color == payload) {
-              filterProducts.push(data);
-            }
-          })
+/**
+ * @method filterByColor
+ */
+public filterByColor(products: Product[], payload: string[]): any {
+  if (!payload || payload.length === 0) {
+    return products;
+  } else {
+    let uniqueProductIds = new Set<string>();
+    let filterProducts = [];
+
+    products.filter((data: any) => {
+      if (data?.variants?.length > 0) {
+        data.variants.filter((variant: any) => {
+          if (payload.includes(variant.color) && !uniqueProductIds.has(data.product_id)) {
+            uniqueProductIds.add(data.product_id);
+            filterProducts.push(data);
+          }
+        });
+      }
+    });
+
+    return filterProducts;
+  }
+}
+
+
+/**
+ * @method filterBySize
+ */
+public filterBySize(products: Product[], payload: string[]): any {
+  if (!payload || payload.length === 0) {
+    return products;
+  } else {
+    let uniqueProductIds = new Set<string>();
+    return products.filter((data: any) => {
+      if (data?.variants?.length > 0) {
+        let filteredVariants = data.variants.filter((variant: any) => {
+          // return payload.includes(variant.size);
+          return payload == variant.size;
+        });
+
+        if (filteredVariants.length > 0 && !uniqueProductIds.has(data.product_id)) {
+          uniqueProductIds.add(data.product_id);
+          return true;
         }
-      });
-      return filterProducts;
-    }
+      }
+      return false;
+    });
   }
-  /**
-   * @method filterByBrand
-   */
-  public filterByBrand(products: Product[], payload: string): any {
-    if (!payload) {
-      return products;
-    } else {
-      // let filterProducts = [];
-      // products.filter((data: any) => {
-      //   if(data?.variants?.length > 0) {
-      //     data.variants.filter((variant: any) => {
-      //       if(variant.brand == payload) {
-      //         filterProducts.push(data);
-      //       }
-      //     })
-      //   }
-      // });
-      // return filterProducts;
-      return products.filter((product: Product) => product.brand === payload);
-    }
+}
+
+
+  
+/**
+ * @method filterByBrand
+ */
+public filterByBrand(products: Product[], payload: string[]): any {
+  if (!payload || payload.length === 0) {
+    return products;
+  } else {
+    let uniqueProductIds = new Set<string>();
+    let filterProducts = [];
+
+    products.filter((data: any) => {
+      if (payload.includes(data.brand) && !uniqueProductIds.has(data.product_id)) {
+        uniqueProductIds.add(data.product_id);
+        filterProducts.push(data);
+      }
+    });
+
+    return filterProducts;
   }
+}
+
+
+/**
+ * @method filterByPriceRange
+ */
+public filterByPriceRange(products: Product[], minPrice: number, maxPrice: number): any {
+  if (minPrice === null && maxPrice === null) {
+    return products;
+  } else {
+    return products.filter((product: Product) => {
+      const productPrice = product.price || 0;
+      return (minPrice === null || productPrice >= minPrice) && (maxPrice === null || productPrice <= maxPrice);
+    });
+  }
+}
+
 
   // Sorting Filter
   public sortProducts(products: Product[], payload: string): any {

@@ -72,7 +72,15 @@ export class CollectionLeftSidebarComponent implements OnInit {
     })
   }
 
-   ngOnInit() {
+  ngOnInit(): void {
+    // this.route.queryParams.subscribe(params => {
+    //   // Accessing the 'condition' query parameter
+    //   this.conditionString = params['category'];
+    //   this.productService.getProductsByCategory(this.conditionString).subscribe((result: any) => {
+    //     this.products = result.data;
+    //   })
+    // })
+
     this.route.queryParams.subscribe(params => {
       // Accessing the 'conditionString' query parameter to hit the required api's
       this.conditionString = params;
@@ -145,7 +153,7 @@ export class CollectionLeftSidebarComponent implements OnInit {
   }
 
   // Remove Tag
-  removeTag(tag) {
+  removeTag(tag: any) {
 
     this.brands = this.brands.filter(val => val !== tag);
     this.colors = this.colors.filter(val => val !== tag);

@@ -49,6 +49,7 @@
     <div>
       <bar-rating [rate]="5" [readOnly]="true"></bar-rating>
       <a [routerLink]="['/shop/product/left/sidebar/', product?.title.replace(' ', '-')]">
+        <h6>{{ product?.brand | titlecase }}</h6>
         <h6>{{ product?.title | titlecase }}</h6>
       </a>
       <p>{{ product?.description }}</p>
