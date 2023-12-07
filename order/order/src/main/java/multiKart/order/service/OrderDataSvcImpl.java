@@ -104,7 +104,7 @@ public class OrderDataSvcImpl implements OrderDataService {
         ApplicationResponse applicationResponse = new ApplicationResponse();
         try {
 
-            List<Order> orders = orderRepo.findByUserId(userId);
+            List<Order> orders = orderRepo.findByUserId(Long.parseLong(userId));
             if (orders != null && !orders.isEmpty()) {
                 log.info("Orders retrieved successfully for userId " + userId);
                 applicationResponse.setStatus(Constants.OK);

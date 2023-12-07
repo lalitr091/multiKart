@@ -11,7 +11,7 @@ public class Order
     @Id
     private String id;
     private String modeOfPayment;
-    private long userId;
+    private Long userId;
     private double totalAmount;
     private String orderStatus;
     private  String paymentStatus="pending";
