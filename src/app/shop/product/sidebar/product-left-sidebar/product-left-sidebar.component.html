@@ -93,7 +93,7 @@
                       <ul>
                           <li [class.active]="selectedSize == size" 
                               *ngFor="let size of Size(product.variants)">
-                              <a href="javascript:void(0)" (click)="selectSize(size)">
+                              <a (click)="selectSize(size)">
                                 {{ size | titlecase }}
                               </a>
                           </li>
@@ -120,7 +120,7 @@
                   </div>
                   <div class="product-buttons">
                     <button class="btn btn-solid" [class.disabled]="((counter > product.stock) || !selectedSize)" (click)="addToCart(product, selectedColor, selectedSize)">add to cart</button>
-                    <a href="javascrip:void(0)" class="btn btn-solid" [class.disabled]="(counter > product.stock) || !selectedSize" (click)="buyNow(product,  selectedColor, selectedSize)">buy now</a>
+                    <a class="btn btn-solid" [class.disabled]="(counter > product.stock) || !selectedSize" (click)="buyNow(product,  selectedColor, selectedSize)">buy now</a>
                   </div>
                   <div class="border-product">
                     <h6 class="product-title">product details</h6>

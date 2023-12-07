@@ -4,6 +4,7 @@ import { Observable, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { ProductService } from "../../services/product.service";
 import { Product } from "../../classes/product";
+import { NavigationExtras, Router } from '@angular/router';
 
 @Component({
   selector: 'app-settings',
@@ -41,24 +42,43 @@ export class SettingsComponent implements OnInit {
   totalAmountSubscription: Subscription;
   totalAmount: number;
   private cartUpdateSubscription: Subscription;
+  searchTerm: string = '';
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object,
     private translate: TranslateService,
-    public productService: ProductService) {
+    public productService: ProductService,
+    private router: Router) {
   }
 
   ngOnInit(): void {
     this.getCartData();
     this.totalAmountSubscription = this.productService.cartTotalAmount().subscribe((total: number) => {
       this.totalAmount = total;
+      console.log('Updated Total Amount in Component:', total);
     });
     this.cartUpdateSubscription = this.productService.cartUpdate$.subscribe(() => {
       this.getCartData();
+      this.totalAmountSubscription = this.productService.cartTotalAmount().subscribe((total: number) => {
+        this.totalAmount = total;
+        console.log('Updated Total Amount in Component:', total);
+      });
     });
+  }
+
+  //Navigate to next component and get the searched product list
+  onSearch() {
+    let navigationExtras: NavigationExtras = {
+      queryParams: { 'searchTerm': this.searchTerm },
+      fragment: 'anchor'
+    };
+    this.router.navigate(['/shop/collection/left/sidebar/'], navigationExtras);
   }
 
   ngOnDestroy() {
     this.cartUpdateSubscription.unsubscribe();
+    if (this.totalAmountSubscription) {
+      this.totalAmountSubscription.unsubscribe();
+    }  
   }
 
   getCartData() {

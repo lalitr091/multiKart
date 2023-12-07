@@ -38,6 +38,15 @@ export class ProductService {
     ---------------------------------------------
   */
 
+      /**
+* @method searchProducts
+* @description Search products by Brand, Title, Description
+*/
+    searchProducts(searchTerm: string): any {
+      const url = `http://localhost:8085/multikart/v1/product/search?keyword=${searchTerm}`;
+      return this.http.get(url);
+    }
+
   /**
 * @method getCategory
 */
@@ -297,16 +306,18 @@ export class ProductService {
 
   // Total amount 
   public cartTotalAmount(): Observable<number> {
-    return this.getCartItems(1234).pipe(map((product) => {
-      return product.reduce((prev, curr: Product) => {
-        let price = curr.price;
-        if (curr.discount) {
-          price = curr.price - (curr.price * curr.discount / 100)
-        }
-        return (prev + price * curr.variants[0].variantid_qty) * this.Currency.price;
-      }, 0);
-    }));
-  }
+    return this.getCartItems(1234).pipe(
+      map((products) => {
+        const totalAmount = products.reduce((total, product: Product) => {
+          const price = product.discount ? product.price * (1 - product.discount / 100) : product.price;
+          const subtotal = price * product.variants[0].variantid_qty;
+          return total + subtotal * this.Currency.price;
+        }, 0);
+        console.log('Total Amount:', totalAmount);
+        return totalAmount;
+      })
+    );
+  }  
 
   /*
     ---------------------------------------------

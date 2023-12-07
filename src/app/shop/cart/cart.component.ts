@@ -27,9 +27,14 @@ export class CartComponent implements OnInit {
     this.getCartData();
     this.totalAmountSubscription = this.productService.cartTotalAmount().subscribe((total: number) => {
       this.totalAmount = total;
+      console.log('Updated Total Amount in Component:', total);
     });
     this.cartUpdateSubscription = this.productService.cartUpdate$.subscribe(() => {
       this.getCartData();
+      this.totalAmountSubscription = this.productService.cartTotalAmount().subscribe((total: number) => {
+        this.totalAmount = total;
+        console.log('Updated Total Amount in Component:', total);
+      });
     });
   }
 
