@@ -33,6 +33,8 @@ public class RestfulServiceRouter {
         return wishlistDataService.addToWishlist(wishlist);
     }
 
+    @Operation(summary="delete product from wishlist")
+    @Tag(name= "delete product from wishlist")
     @DeleteMapping("/remove")
     public ApplicationResponse removeFromWishlist(@RequestParam String userId, @RequestParam String productId, @RequestParam String variantId) {
         return wishlistDataService.removeFromWishlist(userId, productId, variantId);
