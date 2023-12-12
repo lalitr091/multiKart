@@ -130,7 +130,7 @@ public class CartDataServiceImpl implements CartDataService {
 
                 if (!itemExists) {
                     Cart.CartItem newItem = new Cart.CartItem();
-                    newItem.setVariantid_qty(1);
+                    newItem.setVariantid_qty(userItem.getVariantid_qty());
                     newItem.setVariantid(userItem.getVariantid());
                     newItem.setProductid(userItem.getProductid());
                     existingCart.getCartItems().add(newItem);
