@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -108,6 +109,26 @@ public class ProductDataServiceImpl implements ProductDataService {
     public void saveProduct(Product product) {
         productRepo.save(product);
     }
+
+    @Override
+    public ApplicationResponse updateAvgRating(String productId, String avgRating) {
+        Optional<Product> optionalProduct = productRepo.findById(productId);
+        ApplicationResponse applicationResponse = new ApplicationResponse<>();
+        if (optionalProduct.isPresent()) {
+            Product product = optionalProduct.get();
+            product.setAvgRating(avgRating);
+
+            // Save the updated product back to the database
+            productRepo.save(product);
+            applicationResponse.setStatus(Constants.OK);
+        } else {
+            // Handle the case where the product with the given ID is not found
+            log.error("Product not found with ID: " + productId);
+            applicationResponse.setStatus(Constants.NO_CONTENT);
+        }
+        return applicationResponse;
+    }
+
 
     @Override
     public ApplicationResponse<Product> searchProducts(String keyword) {

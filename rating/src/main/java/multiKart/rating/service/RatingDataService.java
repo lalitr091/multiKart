@@ -10,4 +10,5 @@ public interface RatingDataService {
     ApplicationResponse getRatingByUserId(String userId);
     ApplicationResponse getRatingByProductId(String productId, String variantId);
     ApplicationResponse removeRating(String userId, String productId, String variantId);
+    double averageRating(String productId, String variantId);
 }

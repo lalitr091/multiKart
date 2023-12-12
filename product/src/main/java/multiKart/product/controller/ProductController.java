@@ -77,4 +77,8 @@ public class ProductController {
     }
 
 
+    @PutMapping("/updateAvgRating")
+    public ApplicationResponse updateAvgRating(@RequestBody Product product) {
+        return productDataService.updateAvgRating(product.getProduct_id(), product.getAvgRating());
+    }
 }

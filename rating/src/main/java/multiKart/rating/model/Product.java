@@ -21,7 +21,7 @@ public class Product {
     private List<String> tags;
     private List<Variant> variants;
     private List<Image> images;
-
+    private String avgRating;
 
 
 

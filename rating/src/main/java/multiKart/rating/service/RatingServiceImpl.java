@@ -1,20 +1,30 @@
 package multiKart.rating.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import multiKart.rating.model.Product;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import multiKart.rating.Repository.RatingRepo;
 import multiKart.rating.common.Constants;
 import multiKart.rating.model.ApplicationResponse;
 import multiKart.rating.model.Rating;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
 public class RatingServiceImpl implements RatingDataService{
     @Autowired
     private RatingRepo ratingRepository;
+
+    @Autowired
+    private RestTemplate restTemplate;
     @Override
     public ApplicationResponse create(Rating rating) {
         try {
@@ -31,6 +41,40 @@ public class RatingServiceImpl implements RatingDataService{
             }
             if(ratingExists==false)
                 ratingRepository.save(rating);
+
+            try {
+                String variantId = rating.getVariantId();
+                String productId = rating.getProductId();
+                String productApiUrl = "http://localhost:8085/multikart/v1/product/byvariantid";
+
+                UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(productApiUrl)
+                        .queryParam("productId", productId)
+                        .queryParam("variantId", variantId);
+
+                ApplicationResponse<Map<String, Object>> productResponse = restTemplate.exchange(
+                        builder.toUriString(),
+                        HttpMethod.GET,
+                        null,
+                        new ParameterizedTypeReference<ApplicationResponse<Map<String, Object>>>() {
+                        }
+                ).getBody();
+
+                if (productResponse != null && productResponse.getStatus().equals(Constants.OK)) {
+                    Map<String, Object> productMap = productResponse.getData().get(0);
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Product product = objectMapper.convertValue(productMap, Product.class);
+                    double avgRating = averageRating(productId,variantId);
+                    product.setAvgRating(String.valueOf(avgRating));
+
+                    String productUpdateUrl = "http://localhost:8085/multikart/v1/product/updateAvgRating";
+                    restTemplate.put(productUpdateUrl, product);
+
+                } else {
+                    log.warn("Failed to retrieve product details for productId: {} and variantId: {}", productId, rating.getRatingId());
+                }
+            } catch (Exception e) {
+                log.error("An error occurred while fetching product details", e);
+            }
 
             ApplicationResponse applicationResponse = new ApplicationResponse();
             applicationResponse.setStatus(Constants.OK);
@@ -134,5 +178,15 @@ public class RatingServiceImpl implements RatingDataService{
             errorResponse.setMessage("An error occurred while removing rating of product: " + e.getMessage());
             return errorResponse;
         }
+    }
+
+    public double averageRating(String productId, String variantId){
+        List<Rating> ratings = ratingRepository.findByProductIdAndVariantId(productId, variantId);
+        double avgRating = 0;
+        for(Rating rating : ratings){
+            avgRating += Integer.parseInt(rating.getRating());
+        }
+        avgRating = avgRating/ratings.size();
+        return avgRating;
     }
 }

@@ -26,4 +26,5 @@ public interface ProductDataService
     void saveProduct(Product existingProduct);
 
 
+    ApplicationResponse updateAvgRating(String productId, String avgRating);
 }
