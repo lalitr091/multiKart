@@ -1,6 +1,9 @@
-package com.multikart.cart.model;
+package com.example.compare.model;
+
 import lombok.Data;
+
 import java.util.List;
+
 @Data
 public class Product {
     private String product_id;
