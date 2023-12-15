@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: MultiKart
+    name: Order
   data:
     mongodb:
       host: localhost
