@@ -10,7 +10,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
@@ -18,7 +21,9 @@ import java.util.Map;
  * Controller for requests to the {@code /profile} resource. Populates the model with the claims from the
  * {@linkplain OidcUser} for use by the view.
  */
-@Controller
+@RestController
+@CrossOrigin(origins = "*")
+@RequestMapping("/multikart/okta")
 public class ProfileController {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
