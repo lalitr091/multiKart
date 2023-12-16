@@ -6,6 +6,7 @@ import com.example.razorpay.model.ApplicationResponse;
 import com.example.razorpay.model.Transaction;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/payment")
@@ -20,6 +22,26 @@ public class paymentController {
 
     @Autowired
     PaymentRepo paymentRepo;
+
+    @GetMapping
+    public ApplicationResponse getTransactions()
+    {
+        try {
+            List<Transaction> transactions = paymentRepo.findAll();
+            ApplicationResponse response = new ApplicationResponse();
+            response.setData(transactions);
+            response.setMessage("List of all Transactions");
+            response.setStatus(Constants.OK);
+            return response;
+        }catch (Exception e) {
+            log.error("An error occurred while getting all Transactions", e.getMessage());
+
+            ApplicationResponse error = new ApplicationResponse();
+            error.setStatus(Constants.INTERNAL_SERVER_ERROR);
+            error.setMessage("An error occurred while getting all Transactions");
+            return error;
+        }
+    }
 
     @PostMapping("/createOrder")
     public ApplicationResponse createOrder(@RequestParam String orderId, @RequestParam int amount) throws Exception {
