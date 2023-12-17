@@ -1,5 +1,7 @@
 package com.auth0.example;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/multikart/okta")
 public class HomeController {
 
+    @Operation(summary = "user")
+    @Tag(name = "user")
     @GetMapping("/")
     public String home(Model model, @AuthenticationPrincipal OidcUser principal) {
         if (principal != null) {

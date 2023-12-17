@@ -27,6 +27,7 @@ dependencies {
     implementation 'com.auth0:mvc-auth-commons:1.9.3'
     implementation 'com.okta.spring:okta-spring-boot-starter:3.0.5'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.2.0'
     implementation 'org.springframework.cloud:spring-cloud-starter'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'

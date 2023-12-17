@@ -3,6 +3,8 @@ package com.auth0.example;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import net.minidev.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,8 @@ public class ProfileController {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final static ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
+    @Operation(summary = "user profile")
+    @Tag(name = "user profile")
     @GetMapping("/profile")
     public String profile(Model model, @AuthenticationPrincipal OidcUser oidcUser) {
         model.addAttribute("profile", oidcUser.getClaims());
