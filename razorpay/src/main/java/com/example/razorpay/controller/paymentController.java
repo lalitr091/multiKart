@@ -6,6 +6,8 @@ import com.example.razorpay.model.ApplicationResponse;
 import com.example.razorpay.model.Transaction;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,8 @@ public class paymentController {
     @Autowired
     PaymentRepo paymentRepo;
 
+    @Operation(summary = "get all transactions")
+    @Tag(name = "List of all transactions")
     @GetMapping
     public ApplicationResponse getTransactions()
     {
@@ -43,6 +47,8 @@ public class paymentController {
         }
     }
 
+    @Operation(summary = "create transaction")
+    @Tag(name = "create transaction")
     @PostMapping("/createOrder")
     public ApplicationResponse createOrder(@RequestParam String orderId, @RequestParam int amount) throws Exception {
         var client = new RazorpayClient("rzp_test_qs6do2s9fX28HB","Ht0B5rxZuTtlhO7LwsMWLxJH");
@@ -80,6 +86,8 @@ public class paymentController {
         return applicationResponse;
     }
 
+    @Operation(summary = "update payment status")
+    @Tag(name = "update payment status")
     @PostMapping("/updatePaymentStatus")
     public ApplicationResponse updatePaymentStatus(@RequestParam String paymentId, @RequestParam String orderId, @RequestParam String status) {
         ApplicationResponse applicationResponse = new ApplicationResponse();
