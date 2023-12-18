@@ -66,7 +66,7 @@ public class OrderDataSvcImpl implements OrderDataService {
                     savedOrder = orderRepo.save(order);
                     //savedOrder.setOrderStatus("confirm");
                     savedOrder.setCreatedAt(LocalDateTime.now().toString());
-                    //savedOrder.setPaymentStatus("pending");
+                    savedOrder.setPaymentStatus("pending");
                     orderRepo.save(savedOrder);
                     applicationResponse.setStatus(Constants.OK);
                     applicationResponse.setMessage("Order placed successfully , your order id is- "+ savedOrder.getId());

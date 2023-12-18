@@ -10,11 +10,11 @@ public class Order
 {
     @Id
     private String id;
-    //private String modeOfPayment;
+    private String modeOfPayment;
     private Long userId;
     private double totalAmount;
     private OrderStatus orderStatus = OrderStatus.Pending;
-    //private  String paymentStatus="pending";
+    private  String paymentStatus="pending";
     private BillingDetails billingDetails;
     private List<Product> products;
     private String createdAt;
