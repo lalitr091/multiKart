@@ -6,6 +6,7 @@ import multiKart.order.Repository.OrderRepo;
 import multiKart.order.common.Constants;
 import multiKart.order.model.ApplicationResponse;
 import multiKart.order.model.Order;
+import multiKart.order.model.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -63,9 +64,9 @@ public class OrderDataSvcImpl implements OrderDataService {
 
                 if (isVariantInStock(order.getProducts())) {  //check whether that variant is in stock or not now
                     savedOrder = orderRepo.save(order);
-                    savedOrder.setOrderStatus("confirm");
+                    //savedOrder.setOrderStatus("confirm");
                     savedOrder.setCreatedAt(LocalDateTime.now().toString());
-                    savedOrder.setPaymentStatus("pending");
+                    //savedOrder.setPaymentStatus("pending");
                     orderRepo.save(savedOrder);
                     applicationResponse.setStatus(Constants.OK);
                     applicationResponse.setMessage("Order placed successfully , your order id is- "+ savedOrder.getId());
@@ -143,6 +144,29 @@ public class OrderDataSvcImpl implements OrderDataService {
         catch (Exception e)
         {  log.warn("exception occurred while sending mail to mail_id {} ", to);
         }
+    }
+
+    @Override
+    public ApplicationResponse updateOrderStatus(String orderId, OrderStatus orderStatus) {
+        ApplicationResponse applicationResponse = new ApplicationResponse<>();
+        try {
+            Order order = orderRepo.findById(orderId).orElse(null);
+            if (order != null) {
+                order.setOrderStatus(orderStatus);
+            }
+            else{
+                log.error("order not found...");
+            }
+            orderRepo.save(order);
+
+            applicationResponse.setStatus(Constants.OK);
+            applicationResponse.setData(Collections.singletonList(order));
+            applicationResponse.setMessage("order status updated successfully!!!");
+        }catch (Exception e){
+            applicationResponse.setMessage("order status not updated successfully!!!");
+            applicationResponse.setStatus(Constants.INTERNAL_SERVER_ERROR);
+        }
+        return applicationResponse;
     }
 
     private List<Map<String, Object>> buildProductDetailsList(List<Order.Product> products) {
