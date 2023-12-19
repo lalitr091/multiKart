@@ -187,7 +187,9 @@ export class ProductService {
   // Get Cart Items
   public getCartItems(userId): Observable<Product[]> {
     return this.http.get<Product[]>(this.cartUrl + '/cart/byuserid?userId=' + userId).pipe(
-      map((response: any) => response?.data[0])
+      map((response: any) => {
+        return response?.data[0]
+      })
     );
   }
 
@@ -313,7 +315,6 @@ export class ProductService {
           const subtotal = price * product.variants[0].variantid_qty;
           return total + subtotal * this.Currency.price;
         }, 0);
-        console.log('Total Amount:', totalAmount);
         return totalAmount;
       })
     );

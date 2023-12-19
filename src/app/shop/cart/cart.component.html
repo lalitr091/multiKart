@@ -103,7 +103,7 @@
                                 </h2>
                             </td>
                             <td>
-                                <a href="javascript:void(0)" (click)="removeItem(product)" class="icon">
+                                <a (click)="removeItem(product)" class="icon">
                                     <i class="ti-close"></i>
                                 </a>
                             </td>
@@ -134,7 +134,7 @@
                 <a (click)="onContinueShopping()" class="btn btn-solid">continue shopping</a>
             </div>
             <div class="col-6">
-                <a [routerLink]="['/shop/checkout']" class="btn btn-solid">check out</a>
+                <a (click)="onCheckout()" class="btn btn-solid">check out</a>
             </div>
         </div>
     </div>

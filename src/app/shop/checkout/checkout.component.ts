@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, Subject, Subscription } from 'rxjs';
 // import { IPayPalConfig, ICreateOrderRequest } from 'ngx-paypal';
 import { environment } from '../../../environments/environment';
 import { Product } from "../../shared/classes/product";
@@ -14,36 +14,78 @@ import { OrderService } from "../../shared/services/order.service";
 })
 export class CheckoutComponent implements OnInit {
 
-  public checkoutForm:  UntypedFormGroup;
+  public checkoutForm: UntypedFormGroup;
   public products: Product[] = [];
   // public payPalConfig ? : IPayPalConfig;
-  public payment: string = 'Stripe';
-  public amount:  any;
+  public payment: string = 'COD';
+  public amount: any;
+  public userId = 1234;
+  totalAmountSubscription: Subscription;
+  totalAmount: number;
+  private cartUpdateSubscription: Subscription;
 
   constructor(private fb: UntypedFormBuilder,
     public productService: ProductService,
-    private orderService: OrderService) { 
+    private orderService: OrderService) {
     this.checkoutForm = this.fb.group({
       firstname: ['', [Validators.required, Validators.pattern('[a-zA-Z][a-zA-Z ]+[a-zA-Z]$')]],
       lastname: ['', [Validators.required, Validators.pattern('[a-zA-Z][a-zA-Z ]+[a-zA-Z]$')]],
-      phone: ['', [Validators.required, Validators.pattern('[0-9]+')]],
+      phone: ['', [Validators.required, Validators.pattern('[0-9]+'), Validators.maxLength(10), , Validators.minLength(10)]],
       email: ['', [Validators.required, Validators.email]],
       address: ['', [Validators.required, Validators.maxLength(50)]],
       country: ['', Validators.required],
       town: ['', Validators.required],
       state: ['', Validators.required],
-      postalcode: ['', Validators.required]
+      postalcode: ['', [Validators.required, Validators.maxLength(6), , Validators.minLength(6)]]
     })
+
   }
 
   ngOnInit(): void {
-    this.productService.cartItems.subscribe(response => this.products = response);
-    this.getTotal.subscribe(amount => this.amount = amount);
-    this.initConfig();
+    this.getCartData();
+    this.totalAmountSubscription = this.productService.cartTotalAmount().subscribe((total: number) => {
+      this.totalAmount = total;
+    });
+    this.cartUpdateSubscription = this.productService.cartUpdate$.subscribe(() => {
+      this.getCartData();
+      this.totalAmountSubscription = this.productService.cartTotalAmount().subscribe((total: number) => {
+        this.totalAmount = total;
+      });
+    });
   }
+
+  ngOnDestroy(): void {
+    if (this.totalAmountSubscription) {
+      this.totalAmountSubscription.unsubscribe();
+    }
+    if (this.cartUpdateSubscription) {
+      this.cartUpdateSubscription.unsubscribe();
+    }
+  }
+
+  getCartData() {
+    // Check if there is an existing subscription
+    this.cartUpdateSubscription = this.productService.getCartItems(this.userId).subscribe(response => {
+      this.products = response;
+      this.products.forEach(element => {
+        element['selectedImages'] = [];
+        element.images.forEach(ele => {
+          if (ele.image_id === element.variants[0].image_id) {
+            element['selectedImages'].push({ src: ele.src, alt: ele.alt })
+          }
+        });
+      });
+    });
+  }
+
 
   public get getTotal(): Observable<number> {
     return this.productService.cartTotalAmount();
+  }
+
+  //CODCheckout 08/12/2023
+  async placeOrder() {
+    await this.orderService.placeOrder(this.products, this.totalAmount, this.checkoutForm);
   }
 
   // Stripe Payment Gateway
@@ -61,7 +103,7 @@ export class CheckoutComponent implements OnInit {
       name: 'Multikart',
       description: 'Online Fashion Store',
       amount: this.amount * 100
-    }) 
+    })
   }
 
   // Paypal Payment Gateway

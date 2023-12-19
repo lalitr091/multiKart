@@ -54,13 +54,11 @@ export class SettingsComponent implements OnInit {
     this.getCartData();
     this.totalAmountSubscription = this.productService.cartTotalAmount().subscribe((total: number) => {
       this.totalAmount = total;
-      console.log('Updated Total Amount in Component:', total);
     });
     this.cartUpdateSubscription = this.productService.cartUpdate$.subscribe(() => {
       this.getCartData();
       this.totalAmountSubscription = this.productService.cartTotalAmount().subscribe((total: number) => {
         this.totalAmount = total;
-        console.log('Updated Total Amount in Component:', total);
       });
     });
   }
@@ -75,7 +73,9 @@ export class SettingsComponent implements OnInit {
   }
 
   ngOnDestroy() {
-    this.cartUpdateSubscription.unsubscribe();
+    if (this.cartUpdateSubscription) {
+      this.cartUpdateSubscription.unsubscribe();
+    }
     if (this.totalAmountSubscription) {
       this.totalAmountSubscription.unsubscribe();
     }  
