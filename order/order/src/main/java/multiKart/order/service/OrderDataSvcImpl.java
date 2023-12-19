@@ -109,7 +109,8 @@ public class OrderDataSvcImpl implements OrderDataService {
             if (orders != null && !orders.isEmpty()) {
                 log.info("Orders retrieved successfully for userId " + userId);
                 applicationResponse.setStatus(Constants.OK);
-                applicationResponse.setMessage("Orders retrieved successfully for user name " + userId + orders);
+                applicationResponse.setMessage("Orders retrieved successfully for user name " + userId);
+                applicationResponse.setData(orders);
 
             } else {
 
