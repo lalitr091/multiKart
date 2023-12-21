@@ -6,9 +6,7 @@ spring:
     name: Compare
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: multikart_compare
+      uri: mongodb+srv://sdutta:x2JhOIU3t48x4z2f@multikart.khko0j6.mongodb.net/multikart_compare?retryWrites=true&w=majority
 
 eureka:
   instance:

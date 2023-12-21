@@ -6,9 +6,7 @@ spring:
     name: Cart
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: multikart_cart
+      uri: mongodb+srv://sdutta:x2JhOIU3t48x4z2f@multikart.khko0j6.mongodb.net/multikart_cart?retryWrites=true&w=majority
 
 eureka:
   instance:

@@ -6,9 +6,7 @@ spring:
     name: Rating
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: multikart_ratings
+      uri: mongodb+srv://sdutta:x2JhOIU3t48x4z2f@multikart.khko0j6.mongodb.net/multikart_ratings?retryWrites=true&w=majority
 
 
 eureka:

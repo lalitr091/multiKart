@@ -6,9 +6,7 @@ spring:
     name: Wishlist
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: multikart_wishlist
+      uri: mongodb+srv://sdutta:x2JhOIU3t48x4z2f@multikart.khko0j6.mongodb.net/multikart_wishlist?retryWrites=true&w=majority
 
 eureka:
   instance:

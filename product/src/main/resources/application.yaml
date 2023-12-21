@@ -6,9 +6,7 @@ spring:
     name: Product
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: multiKart_product
+      uri: mongodb+srv://sdutta:x2JhOIU3t48x4z2f@multikart.khko0j6.mongodb.net/multiKart_product?retryWrites=true&w=majority
 
 eureka:
   instance:

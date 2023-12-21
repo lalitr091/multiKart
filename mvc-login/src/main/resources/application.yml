@@ -3,6 +3,9 @@ server:
 spring:
   application:
     name: okta
+  data:
+    mongodb:
+      uri: mongodb+srv://sdutta:x2JhOIU3t48x4z2f@multikart.khko0j6.mongodb.net/db-name?retryWrites=true&w=majority
 logging:
   level:
     root: ERROR
