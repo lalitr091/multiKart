@@ -120,6 +120,7 @@ import { DiscountPipe } from './pipes/discount.pipe';
     LayoutBoxComponent,
     TapToTopComponent,
     DiscountPipe,
+    SettingsComponent
   ]
 })
 export class SharedModule { }

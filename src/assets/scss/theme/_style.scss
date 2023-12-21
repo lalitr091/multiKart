@@ -14303,6 +14303,10 @@ footer {
 .toast-container .ngx-toastr {
     border-radius: 15px;
     width: 345px;
+    position: fixed;
+    top: 4rem;
+    right: 2.5rem;
+    z-index: 999;
 }
 
 .toast {

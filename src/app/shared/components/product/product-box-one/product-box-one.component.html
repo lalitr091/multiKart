@@ -25,29 +25,29 @@
         </a>
       </li>
     </ul>
-    <!-- <div class="cart-info cart-wrap">
-      <a href="javascript:void(0)" title="Add to cart" (click)="CartModal.openModal(product)"
+    <div class="cart-info cart-wrap">
+      <!-- <a href="javascript:void(0)" title="Add to cart" (click)="CartModal.openModal(product)"
         *ngIf="cartModal">
         <i class="ti-shopping-cart"></i>
-      </a>
-      <a href="javascript:void(0)" title="Add to cart" (click)="addToCart(product)"
+      </a> -->
+      <!-- <a href="javascript:void(0)" title="Add to cart" (click)="addToCart(product)"
         *ngIf="!cartModal">
         <i class="ti-shopping-cart"></i>
-      </a>
-      <a href="javascript:void(0)" title="Add to Wishlist" (click)="addToWishlist(product)">
+      </a> -->
+      <a href="javascript:void(0)" title="Add to Wishlist" (click)="onAddToWishlist(product)">
         <i class="ti-heart" aria-hidden="true"></i>
       </a>
-      <a href="javascript:void(0)" title="Quick View" (click)="QuickView.openModal()">
+      <!-- <a href="javascript:void(0)" title="Quick View" (click)="QuickView.openModal()">
         <i class="ti-search" aria-hidden="true"></i>
-      </a>
+      </a> -->
       <a href="javascript:void(0)" title="Compare" (click)="addToCompare(product)">
         <i class="ti-reload" aria-hidden="true"></i>
       </a>
-    </div> -->
+    </div>
   </div>
   <div class="product-detail">
     <div>
-      <bar-rating [rate]="5" [readOnly]="true"></bar-rating>
+      <bar-rating [rate]="productRating" [readOnly]="true"></bar-rating>
       <a [routerLink]="['/shop/product/left/sidebar/', product?.title.replace(' ', '-')]">
         <h6>{{ product?.brand | titlecase }}</h6>
         <h6>{{ product?.title | titlecase }}</h6>

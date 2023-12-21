@@ -17,6 +17,7 @@
               <th scope="col">price</th>
               <th scope="col">availability</th>
               <th scope="col">action</th>
+              <th scope="col">add to cart</th>
             </tr>
           </thead>
           <tbody *ngFor="let product of products">
@@ -42,9 +43,9 @@
                         <a href="javascript:void(0)" (click)="removeItem(product)" class="icon me-1">
                           <i class="ti-close"></i>
                         </a>
-                        <a [routerLink]="['/shop/cart']" (click)="addToCart(product)" class="cart">
+                        <!-- <a [routerLink]="['/shop/cart']" (click)="addToCart(product)" class="cart">
                           <i class="ti-shopping-cart"></i>
-                        </a>
+                        </a> -->
                       </h2>
                     </div>
                   </div>
@@ -61,9 +62,12 @@
                   <a href="javascript:void(0)" (click)="removeItem(product)" class="icon me-3">
                     <i class="ti-close"></i>
                   </a>
-                  <a href="javascript:void(0)" (click)="addToCart(product)" class="cart">
-                    <i class="ti-shopping-cart"></i>
-                  </a>
+              </td>
+              <td>
+                <!-- <a href="javascript:void(0)" (click)="addToCart(product, selectedColor, selectedSize)" class="cart"> -->
+                <a href="javascript:void(0)" (click)="addToCartFromWishlist(product)" class="cart">
+                  <i class="ti-shopping-cart"></i>
+                </a>
               </td>
             </tr>
           </tbody>
@@ -72,7 +76,7 @@
     </div>
     <div class="row wishlist-buttons" *ngIf='products.length'>
       <div class="col-12">
-        <a [routerLink]="['/shop/collection/left/sidebar']" class="btn btn-solid">continue shopping</a>
+        <a (click)="onContinueShopping()" class="btn btn-solid">continue shopping</a>
         <a [routerLink]="['/shop/checkout']" class="btn btn-solid">check out</a>
       </div>
     </div>

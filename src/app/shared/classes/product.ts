@@ -1,5 +1,6 @@
 // Products
 export interface Product {
+    rating?: number;
     data?: any;
     selectedVariant?: any;
     product_id?: string;
@@ -19,6 +20,7 @@ export interface Product {
     tags?: any[];
     variants?: Variants[];
     images?: Images[];
+    orderStatus?: string;
 }
 
 export interface Variants {

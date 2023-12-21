@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { map, startWith, delay, catchError } from 'rxjs/operators';
+import { map, startWith, delay, catchError, tap } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { Product } from '../classes/product';
 import { environment } from 'src/environments/environment';
@@ -13,10 +13,18 @@ const state = {
   cart: JSON.parse(localStorage['cartItems'] || '[]')
 }
 
+interface Compare {
+  _id: string;
+  userId: string;
+  compareItems: { productId: string; variantId: string }[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
+  submitReview(ratingDetails: { rating: any; comment: any; ratingId: string; productId: any; variantId: any; userId: string; orderStatus: 'Delivered' }) {
+  }
 
   public Currency = { name: 'Dollar', currency: 'USD', price: 1 } // Default Currency
   public OpenCart: boolean = false;
@@ -24,9 +32,18 @@ export class ProductService {
   public productRecords = new BehaviorSubject<any[]>([]);
   private apiUrl = environment.apiUrl;
   private cartUrl = environment.cartUrl;
+  private wishlistApiUrl = 'http://localhost:8087/multikart/product/wishlist';
+  private addCompareApiUrl = 'http://localhost:8082/multikart/compare';
+  private ratingsApiUrl = 'http://localhost:8083/ratings';
+  private addRatingUrl = 'http://localhost:8083/ratings/add';
   variantid: any;
   private cartUpdateSubject = new Subject<void>();
+  private wishlistUpdateSubject = new Subject<void>();
+  private compareUpdateSubject = new Subject<void>();
   cartUpdate$ = this.cartUpdateSubject.asObservable();
+  wishlistUpdate$ = this.wishlistUpdateSubject.asObservable();
+  compareUpdate$ = this.compareUpdateSubject.asObservable();
+  
 
   constructor(private http: HttpClient,
     private toastrService: ToastrService) {
@@ -105,13 +122,47 @@ export class ProductService {
   }
 
 
+    /*
+    ---------------------------------------------
+    ---------------  Product Rating  -----------------
+    ---------------------------------------------
+  */
+
+
+   /**
+   * @method getProductRatings
+   * @description Get product ratings by productId and variantId
+   */
+   public getProductRatings(productId: string, variantId: number): Observable<any> {
+    const url = `${this.ratingsApiUrl}/byproduct?productId=${productId}&variantId=${variantId}`;
+    return this.http.get(url);
+  }
+
+   /**
+   * Add review and rating for a product variant.
+   * @param postRatingReview The details of the rating to be added.
+   * @returns Observable<any>
+   */
+   public postRatingReview(ratingDetails: any): Observable<any> {
+    return this.http.post(this.addRatingUrl, ratingDetails);
+  }
+
   /*
     ---------------------------------------------
     ---------------  Wish List  -----------------
     ---------------------------------------------
   */
 
+    // Get Cart Items
+    public getWishItems(userId: any): Observable<Product[]> {
+      return this.http.get<Product[]>(this.wishlistApiUrl + '?userId=' + userId).pipe(
+        map((response: any) => response?.data[0])
+      );
+    }
+
+
   // Get Wishlist Items
+
   public get wishlistItems(): Observable<Product[]> {
     const itemsStream = new Observable(observer => {
       observer.next(state.wishlist);
@@ -120,25 +171,130 @@ export class ProductService {
     return <Observable<Product[]>>itemsStream;
   }
 
-  // Add to Wishlist
-  public addToWishlist(product): any {
-    const wishlistItem = state.wishlist.find((item: { id: any; }) => item.id === product.id)
-    if (!wishlistItem) {
-      state.wishlist.push({
-        ...product
-      })
+  public addToWishlist(product: { variants: any[]; product_id: any; quantity: any; }, selectedColor?: undefined, selectedSize?: undefined): Observable<any> {
+    let isAlreadyAdded = false;
+
+    product?.variants.forEach((element: { color: any; size: any; variant_id: any; }) => {
+          if (selectedColor === element.color && selectedSize === element.size) {
+            this.variantid = element.variant_id;
+          }
+        });
+
+    // Check if the product is already in the wishlist
+    state.wishlist.forEach((item: { product_id: any; }) => {
+        if (item.product_id === product.product_id) {
+            isAlreadyAdded = true;
+        }
+    });
+
+    // If the product is not already in the wishlist, add it
+    if (!isAlreadyAdded) {
+        state.wishlist.push({
+            ...product
+        });
     }
-    this.toastrService.success('Product has been added in wishlist.');
-    localStorage.setItem("wishlistItems", JSON.stringify(state.wishlist));
-    return true
-  }
+
+    // Show a success message
+    this.toastrService.success('Product has been added to the wishlist.');
+
+    // Update the local storage with the updated wishlist
+    localStorage.setItem('wishlistItems', JSON.stringify(state.wishlist));
+
+    // Add API call to the wishlist
+    const request =
+    {
+      "wishlistItems": [
+        {
+          "variantid_qty": product.quantity,
+          "variantId": product.variants[0].variant_id,
+          "productId": product.product_id
+        }
+      ],
+      "userId": "1234"
+    }
+
+    // Make a POST request to the wishlist API
+    return this.http.post(`${this.wishlistApiUrl}/add`, request);
+}
 
   // Remove Wishlist items
-  public removeWishlistItem(product: Product): any {
+  // public removeWishlistItem(product: Product): any {
+  //   const index = state.wishlist.indexOf(product);
+  //   state.wishlist.splice(index, 1);
+  //   localStorage.setItem("wishlistItems", JSON.stringify(state.wishlist));
+  //   return true
+  // }
+    // Remove Cart items
+
+
+  // public removeWishlistItem(product: Product, showToast:boolean= true): Observable<any> {
+  //   const index = state.wishlist.indexOf(product);
+  //   state.wishlist.splice(index, 1);
+  //   localStorage.setItem('wishlistItems', JSON.stringify(state.wishlist));
+
+  //   if (showToast){
+  //     this.toastrService.success( `${product.title} has been removed from the wishlist.`);
+  //   } 
+  //   localStorage.setItem('wishlistItems', JSON.stringify(state.wishlist));
+
+  //   // Remove API call to the wishlist
+  //   const request = {
+  //     userId: '1234', // Replace with actual user ID
+  //     productId: product.product_id,
+  //     variantId: product.variants[0].variant_id
+  //   };
+  //   return this.http.delete(`${this.wishlistApiUrl}/remove?userId=${request.userId}&productId=${request.productId}&variantId=${request.variantId}`);
+  // }
+
+  public removeWishlistItem(product: Product, showToast: boolean = true): Observable<any> {
     const index = state.wishlist.indexOf(product);
     state.wishlist.splice(index, 1);
-    localStorage.setItem("wishlistItems", JSON.stringify(state.wishlist));
-    return true
+    localStorage.setItem('wishlistItems', JSON.stringify(state.wishlist));
+  
+    if (showToast) {
+      this.toastrService.success(`${product.title} has been removed from the wishlist.`);
+    }
+  
+    // Remove API call to the wishlist
+    const request = {
+      userId: '1234', // Replace with actual user ID
+      productId: product.product_id,
+      variantId: product.variants[0].variant_id
+    };
+  
+    // Make the DELETE request to the wishlist API
+    const deleteObservable = this.http.delete(`${this.wishlistApiUrl}/remove?userId=${request.userId}&productId=${request.productId}&variantId=${request.variantId}`);
+  
+    // Subscribe to the observable to trigger the updateWishlistSubject when the request is complete
+    deleteObservable.subscribe(
+      () => {
+        // Notify subscribers that the wishlist has been updated
+        this.wishlistUpdateSubject.next();
+      },
+      (error) => {
+        console.error('Error removing product from wishlist:', error);
+      }
+    );
+  
+    return deleteObservable;
+  }
+  
+
+  public moveToCart(product: Product): Observable<any> {
+    const index = state.wishlist.indexOf(product);
+    state.wishlist.splice(index, 1);
+    localStorage.setItem('wishlistItems', JSON.stringify(state.wishlist));
+
+    this.toastrService.success( `${product.title} has been added to cart.`);
+    localStorage.setItem('wishlistItems', JSON.stringify(state.wishlist));
+
+    // Remove API call to the wishlist
+    const request = {
+      userId: '1234', // Replace with actual user ID
+      productId: product.product_id,
+      variantId: product.variants[0].variant_id
+    };
+    return this.http.delete(`${this.wishlistApiUrl}/remove?userId=${request.userId}&productId=${request.productId}&variantId=${request.variantId}`);
   }
 
   /*
@@ -148,6 +304,14 @@ export class ProductService {
   */
 
   // Get Compare Items
+
+    // Get Cart Items
+    public getCompareItems(userId: string): Observable<Product[]> {
+      return this.http.get<Product[]>(this.addCompareApiUrl + '?userId=' + userId).pipe(
+        map((response: any) => response?.data[0])
+      );
+    }
+
   public get compareItems(): Observable<Product[]> {
     const itemsStream = new Observable(observer => {
       observer.next(state.compare);
@@ -156,25 +320,88 @@ export class ProductService {
     return <Observable<Product[]>>itemsStream;
   }
 
-  // Add to Compare
-  public addToCompare(product): any {
-    const compareItem = state.compare.find(item => item.id === product.id)
-    if (!compareItem) {
+  public addToCompare(product: { product_id: any; variants: { variant_id: any; }[]; }): Observable<any> {
+    const compareLimit = 4;
+  
+    // Check if the limit is reached
+    if (state.compare.length >= compareLimit) {
+      // Optionally, you can show a message to the user that the limit has been reached.
+      // Adjust this based on your application's requirements.
+      this.toastrService.warning('You can compare up to 4 products.');
+      return;
+    }
+  
+    let isAlreadyAdded = false;
+    state.compare.forEach((item: { product_id: any; }) => {
+      if (item.product_id === product.product_id) {
+        isAlreadyAdded = true;
+      }
+    });
+  
+    if (!isAlreadyAdded) {
       state.compare.push({
         ...product
-      })
+      });
     }
-    this.toastrService.success('Product has been added in compare.');
-    localStorage.setItem("compareItems", JSON.stringify(state.compare));
-    return true
+  
+    localStorage.setItem('compareItems', JSON.stringify(state.compare));
+  
+  // Add API call to the wishlist
+  const request =
+  {
+    "compareItems": [
+      {
+        "variantId": product.variants[0].variant_id,
+        "productId": product.product_id
+      }
+    ],
+    "userId": "1234"
   }
+    return this.http.post(`${this.addCompareApiUrl}/add`, request);
+  }
+  
+  
 
   // Remove Compare items
-  public removeCompareItem(product: Product): any {
+  // public removeCompareItem(product: Product): any {
+  //   const index = state.compare.indexOf(product);
+  //   state.compare.splice(index, 1);
+  //   localStorage.setItem("compareItems", JSON.stringify(state.compare));
+  //   return true
+  // }
+
+  public removeCompareItem(product: Product, showToast:boolean= true): Observable<any> {
     const index = state.compare.indexOf(product);
     state.compare.splice(index, 1);
-    localStorage.setItem("compareItems", JSON.stringify(state.compare));
-    return true
+    localStorage.setItem('compareItems', JSON.stringify(state.compare));
+
+    if (showToast){
+      this.toastrService.success( `${product.title} has been removed from the compare list.`);
+    } 
+    localStorage.setItem('compareItems', JSON.stringify(state.compare));
+
+    // Remove API call to the wishlist
+    const request = {
+      userId: '1234', // Replace with actual user ID
+      productId: product.product_id,
+      variantId: product.variants[0].variant_id
+    };
+    // return this.http.delete(`${this.addCompareApiUrl}/remove?userId=${request.userId}&productId=${request.productId}&variantId=${request.variantId}`);
+
+    const deleteObservable = this.http.delete(`${this.addCompareApiUrl}/remove?userId=${request.userId}&productId=${request.productId}&variantId=${request.variantId}`);
+
+    // Subscribe to the observable to trigger the updateWishlistSubject when the request is complete
+    deleteObservable.subscribe(
+     () => {
+       // Notify subscribers that the wishlist has been updated
+       this.compareUpdateSubject.next();
+     },
+     (error) => {
+       console.error('Error removing product from wishlist:', error);
+     }
+   );
+ 
+   return deleteObservable;
   }
 
   /*
@@ -185,7 +412,7 @@ export class ProductService {
 
 
   // Get Cart Items
-  public getCartItems(userId): Observable<Product[]> {
+  public getCartItems(userId: string | number): Observable<Product[]> {
     return this.http.get<Product[]>(this.cartUrl + '/cart/byuserid?userId=' + userId).pipe(
       map((response: any) => response?.data[0])
     );
@@ -201,12 +428,12 @@ export class ProductService {
   }
 
   // Add to Cart
-  public addToCart(product, selectedColor?, selectedSize?): any {
-    const cartItem = state.cart.find(item => item.id === product.id);
+  public addToCart(product: Product, selectedColor?: string, selectedSize?: string): any {
+    const cartItem = state.cart.find((item: { id: any; }) => item.id === product.id);
     const qty = product.quantity ? product.quantity : 1;
     const items = cartItem ? cartItem : product;
     const stock = this.calculateStockCounts(items, qty);
-    product?.variants.forEach(element => {
+    product?.variants.forEach((element: { color: any; size: any; variant_id: any; }) => {
       if (selectedColor === element.color && selectedSize === element.size) {
         this.variantid = element.variant_id;
       }
@@ -244,7 +471,7 @@ export class ProductService {
   }
 
   // Update Cart Quantity
-  public updateCartQuantity(product: Product, quantity: number, deleteType, userId) {
+  public updateCartQuantity(product: Product, quantity: number, deleteType: string | number | boolean, userId: number) {
     const variant_id = product.variants[0].variant_id;
     const params = new HttpParams()
       .set('variant_id', variant_id)
@@ -268,7 +495,7 @@ export class ProductService {
   }
 
   // Calculate Stock Counts
-  public calculateStockCounts(product, quantity) {
+  public calculateStockCounts(product: { quantity: any; stock: any; }, quantity: any) {
     const qty = product.quantity + quantity
     const stock = product.stock
     if (stock < qty || stock == 0) {
@@ -279,7 +506,7 @@ export class ProductService {
   }
 
   // Remove Cart items
-  public removeCartItem(product: Product, deleteType?, userId?): any {
+  public removeCartItem(product: Product, deleteType?: string | number | boolean, userId?: number): any {
     // const index = state.cart.indexOf(product);
     // state.cart.splice(index, 1);
     const variant_id = product.variants[0].variant_id
@@ -331,7 +558,7 @@ export class ProductService {
     return this.productRecords?.pipe(map(product =>
       product?.filter((item: Product) => {
         if (!filter.length) return true
-        const Tags = filter.some((prev) => { // Match Tags
+        const Tags = filter.some((prev: any) => { // Match Tags
           if (item.tags) {
             if (item.tags.includes(prev)) {
               return prev

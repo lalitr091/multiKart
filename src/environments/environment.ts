@@ -6,6 +6,7 @@ export const environment = {
   production: false,
   apiUrl: 'http://localhost:8085/multikart/v1',
   cartUrl: 'http://localhost:8081/multikart/v1',
+  orderUrl: 'http://localhost:8086/multikart/v1',
   stripe_token: 'STRIPE_TOKEN',
   paypal_token: 'PAYPAL_TOKEN'
 };

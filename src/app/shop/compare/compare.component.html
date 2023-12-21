@@ -35,7 +35,7 @@
                                     <div class="product-price product_price"> 
                                     <strong>On Sale: </strong><span> {{ (product.price | discount:product) * productService?.Currency.price | currency:productService?.Currency.currency:'symbol' }}</span></div>
                                     <form class="variants clearfix">
-                                      <button title="Add to Cart" (click)="addToCart(product)" class="add-to-cart btn btn-solid">Add to Cart</button>
+                                      <button title="Add to Cart" (click)="addToCartFromCompare(product)" class="add-to-cart btn btn-solid">Add to Cart</button>
                                     </form>
                                 </td>
                             </tr>
