@@ -6,7 +6,7 @@ spring:
     name: Razorpay
   data:
     mongodb:
-      uri: mongodb+srv://sdutta:x2JhOIU3t48x4z2f@multikart.khko0j6.mongodb.net/multikart_razorpay?retryWrites=true&w=majority
+      uri: mongodb+srv://sdutta:A8T4bruLnXSdhuPc@multikart.khko0j6.mongodb.net/multikart_razorpay?retryWrites=true&w=majority
 
 eureka:
   instance:
