@@ -24,15 +24,14 @@ import java.util.Map;
  * Controller for requests to the {@code /profile} resource. Populates the model with the claims from the
  * {@linkplain OidcUser} for use by the view.
  */
-@RestController
+
 @CrossOrigin(origins = "*")
-@RequestMapping("/multikart/okta")
 public class ProfileController {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final static ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    @GetMapping("/profile")
+
     public ApplicationResponse profile(Model model, @AuthenticationPrincipal OidcUser oidcUser) {
         //model.addAttribute("profile", oidcUser.getClaims());
         //model.addAttribute("profileJson", claimsToJson(oidcUser.getClaims()));
