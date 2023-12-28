@@ -15,23 +15,26 @@
                 <div class="col-lg-6 text-end">
                     <ul class="header-dropdown">
                         <li class="compare">
-                            <a [routerLink]="['/shop/compare']"><i class="fa fa-random" aria-hidden="true"></i>Compare</a>
+                            <a [routerLink]="['/shop/compare']"><i class="fa fa-random"
+                                    aria-hidden="true"></i>Compare</a>
                         </li>
                         <li class="mobile-wishlist">
-                            <a [routerLink]="['/shop/wishlist']"><i class="fa fa-heart" aria-hidden="true"></i>Wishlist</a>
+                            <a [routerLink]="['/shop/wishlist']"><i class="fa fa-heart"
+                                    aria-hidden="true"></i>Wishlist</a>
                         </li>
                         <li class="onhover-dropdown mobile-account">
                             <i class="fa fa-user" aria-hidden="true"></i> My Account
                             <ul class="onhover-show-div">
+                               
                                 <li>
-                                    <a data-lng="en">
-                    Login
-                  </a>
+                                    <a data-lng="en" (click)="login()">
+                                        Login
+                                    </a>
                                 </li>
                                 <li>
-                                    <a data-lng="es">
-                    Logout
-                  </a>
+                                    <a data-lng="es" (click)="logout()">
+                                        Logout
+                                    </a>
                                 </li>
                             </ul>
                         </li>

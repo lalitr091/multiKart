@@ -67,7 +67,7 @@
               <div class="col-lg-6 rtl-text">
                 <div class="product-right">
                   <h2>{{ product?.brand }}</h2>
-                  <h2>{{ product?.title }}</h2>
+                  <h2><b>{{ product?.title }}</b></h2>
                   <h4>
                       <del *ngIf="product?.discount">{{ product?.price * productService.Currency?.price | currency: productService.Currency?.currency:'symbol' }}</del>
                       <span>{{ product?.discount }}% off</span>

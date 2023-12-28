@@ -3,11 +3,13 @@ import { HomeSlider } from '../../shared/data/slider';
 import { Product } from '../../shared/classes/product';
 import { ProductService } from '../../shared/services/product.service';
 import { NavigationExtras, Router } from '@angular/router';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-fashion',
   templateUrl: './fashion.component.html',
-  styleUrls: ['./fashion.component.scss']
+  styleUrls: ['./fashion.component.scss'],
+  providers: [DatePipe]
 })
 export class FashionComponent implements OnInit {
 
@@ -19,8 +21,9 @@ export class FashionComponent implements OnInit {
   public category: string;
   public categories: any;
   public request: string;
+  currentDate: Date = new Date();
 
-  constructor(public productService: ProductService, private router: Router) {
+  constructor(public productService: ProductService, private router: Router, private datePipe: DatePipe) {
     this.productService.getProducts.subscribe(response => {
       this.products = response.filter(item => item.type == 'fashion');
       // Get Product Collection
@@ -47,6 +50,10 @@ export class FashionComponent implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  getCurrentYear(): number {
+    return this.currentDate.getFullYear();
   }
 
   onShopNow(subCategory:any){
