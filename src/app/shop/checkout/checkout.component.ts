@@ -6,7 +6,9 @@ import { environment } from '../../../environments/environment';
 import { Product } from "../../shared/classes/product";
 import { ProductService } from "../../shared/services/product.service";
 import { OrderService } from "../../shared/services/order.service";
+import { ToastrService } from 'ngx-toastr';
 
+declare var Razorpay:any;
 @Component({
   selector: 'app-checkout',
   templateUrl: './checkout.component.html',
@@ -23,10 +25,11 @@ export class CheckoutComponent implements OnInit {
   totalAmountSubscription: Subscription;
   totalAmount: number;
   private cartUpdateSubscription: Subscription;
+  public razorpay_payment_id:any;
 
   constructor(private fb: UntypedFormBuilder,
     public productService: ProductService,
-    private orderService: OrderService) {
+    private orderService: OrderService, public toastrService:ToastrService) {
     this.checkoutForm = this.fb.group({
       firstname: ['', [Validators.required, Validators.pattern('[a-zA-Z][a-zA-Z ]+[a-zA-Z]$')]],
       lastname: ['', [Validators.required, Validators.pattern('[a-zA-Z][a-zA-Z ]+[a-zA-Z]$')]],
@@ -84,76 +87,53 @@ export class CheckoutComponent implements OnInit {
   }
 
   //CODCheckout 08/12/2023
-  async placeOrder() {
-    await this.orderService.placeOrder(this.products, this.totalAmount, this.checkoutForm);
+   placeOrder() {
+    this.razorpayModal(this.totalAmount, this.checkoutForm, this.products);
+    // this.orderService.placeOrder(this.products, this.totalAmount, this.checkoutForm);
   }
 
-  // Stripe Payment Gateway
-  stripeCheckout() {
-    var handler = (<any>window).StripeCheckout.configure({
-      key: environment.stripe_token, // publishble key
-      locale: 'auto',
-      token: (token: any) => {
-        // You can access the token ID with `token.id`.
-        // Get the token ID to your server-side code for use.
-        this.orderService.createOrder(this.products, this.checkoutForm.value, token.id, this.amount);
+
+
+  razorpayModal(totalAmount, checkoutForm, products){
+    let options = {
+      "description": "Online Fashion Store",
+      "currency": "USD",
+      "amount": this.totalAmount*100,
+      "name": "MultiKart",
+      "key": "rzp_test_Ft0nb7vJtmhwh8", // Enter the Key ID generated from the Dashboard
+      "image": "https://angular.pixelstrap.com/multikart/assets/images/icon/logo.png",
+      handler: (response:any)=>{
+        if(response!= null && response.razorpay_payment_id != null){
+          this.razorpay_payment_id = response.razorpay_payment_id
+          this.processResponse(response);
+        } else {
+          alert("Payment failed..!!")
+        }
+        
+      },
+      "prefill": {
+          "name": "",
+          "email": "",
+          "contact": ""
+      },
+      "theme": {
+          "color": "#ff4c3b"
+      },
+      modal:{
+        ondismiss: ()=>{
+          this.toastrService.error("Payment cancelled..!!");
+        }
       }
-    });
-    handler.open({
-      name: 'Multikart',
-      description: 'Online Fashion Store',
-      amount: this.amount * 100
-    })
-  }
+  
+  };
 
-  // Paypal Payment Gateway
-  private initConfig(): void {
-    // this.payPalConfig = {
-    //     currency: this.productService.Currency.currency,
-    //     clientId: environment.paypal_token,
-    //     createOrderOnClient: (data) => < ICreateOrderRequest > {
-    //       intent: 'CAPTURE',
-    //       purchase_units: [{
-    //           amount: {
-    //             currency_code: this.productService.Currency.currency,
-    //             value: this.amount,
-    //             breakdown: {
-    //                 item_total: {
-    //                     currency_code: this.productService.Currency.currency,
-    //                     value: this.amount
-    //                 }
-    //             }
-    //           }
-    //       }]
-    //   },
-    //     advanced: {
-    //         commit: 'true'
-    //     },
-    //     style: {
-    //         label: 'paypal',
-    //         size:  'small', // small | medium | large | responsive
-    //         shape: 'rect', // pill | rect
-    //     },
-    //     onApprove: (data, actions) => {
-    //         this.orderService.createOrder(this.products, this.checkoutForm.value, data.orderID, this.getTotal);
-    //         console.log('onApprove - transaction was approved, but not authorized', data, actions);
-    //         actions.order.get().then(details => {
-    //             console.log('onApprove - you can get full order details inside onApprove: ', details);
-    //         });
-    //     },
-    //     onClientAuthorization: (data) => {
-    //         console.log('onClientAuthorization - you should probably inform your server about completed transaction at this point', data);
-    //     },
-    //     onCancel: (data, actions) => {
-    //         console.log('OnCancel', data, actions);
-    //     },
-    //     onError: err => {
-    //         console.log('OnError', err);
-    //     },
-    //     onClick: (data, actions) => {
-    //         console.log('onClick', data, actions);
-    //     }
-    // };
+
+  Razorpay.open(options)
+
+}
+  processResponse(resp:any){
+      console.log(resp);
+      this.orderService.placeOrder(this.products, this.totalAmount, this.checkoutForm, this.razorpay_payment_id);
   }
 
 }

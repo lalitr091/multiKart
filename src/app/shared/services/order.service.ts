@@ -3,8 +3,9 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 import { ToastrService } from 'ngx-toastr';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, catchError, map } from 'rxjs';
 import { ProductService } from './product.service';
+import { METHODS } from 'http';
 
 const state = {
   checkoutItems: JSON.parse(localStorage['checkoutItems'] || '[]')
@@ -18,6 +19,7 @@ export class OrderService {
 
   private cartUpdateSubject = new Subject<void>();
   cartUpdate$ = this.cartUpdateSubject.asObservable();
+  private razorpayApiUrl = 'http://localhost:8084';
 
   constructor(private router: Router,
     private http: HttpClient,
@@ -31,6 +33,36 @@ export class OrderService {
       observer.complete();
     });
     return <Observable<any>>itemsStream;
+  }
+
+  // transaction 
+  razorpayTransaction(orderId: string, totalAmount: number, razorpay_payment_id ): Observable<any> {
+    const id = orderId.replace(" ","");
+    const url = `${this.razorpayApiUrl}/payment/createOrder?orderId=${id}&amount=${totalAmount}`;
+    const dt = new Date();
+    const padL = (nr, len = 2, chr = `0`) => `${nr}`.padStart(2, chr);
+    const dformat = `${dt.getFullYear()}/${padL(dt.getMonth()+1)}/${padL(dt.getDate())}T${padL(dt.getHours())}:${
+      padL(dt.getMinutes())}:${padL(dt.getSeconds())}.000+00:00`;
+     const requestData = {
+      _id: id,
+      // transactionId: razorpay_payment_id,
+      amount: totalAmount
+      // created_at: dformat,
+      // currency: 'USD',
+      // receipt: 'txn_235425',
+      // offer_id: "null",
+      // state:'created',
+    };
+    return this.http.post<any>(url, requestData).pipe(
+      map((resp: any) => {
+        console.log('API Response:', resp);
+        return resp;
+      }),
+      catchError((error) => {
+        console.error('API Error:', error);
+        throw error;
+      })
+    );
   }
 
   // Create order
@@ -53,7 +85,7 @@ export class OrderService {
     }
   
   //placeOrder 08/12/2023
-  public placeOrder(products, totalAmount, checkoutForm){    
+  public placeOrder(products, totalAmount, checkoutForm, transactionId){    
     const productArray = [];
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
@@ -88,6 +120,8 @@ export class OrderService {
       },
       products: productArray
     }
+
+    console.log('Requested data', request);
   this.http.post('http://localhost:8086/multikart/v1/order/create', request)
   .subscribe(
     (response: any) => {
@@ -95,6 +129,10 @@ export class OrderService {
         this.cartUpdateSubject.next();
         this.productService.getCartItems(1234);
         this.toastrService.success(response.message);
+        this.razorpayTransaction(response.message.split('-')[1], totalAmount*100, transactionId).subscribe(data => {
+          console.log(data);
+        })
+        console.log(response.message)
         this.router.navigate(['/shop/cart']);
         return response;
       }

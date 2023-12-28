@@ -116,4 +116,9 @@ public counter: number = 1;
       this.router.navigate(['/shop/collection/left/sidebar/'], navigationExtras);
     }
 
+     //Checkout Cart item to order
+//   onCheckout() {
+//     this.router.navigate(['/shop/checkout/']);
+//  }
+
 }

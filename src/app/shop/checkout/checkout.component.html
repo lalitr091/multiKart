@@ -188,19 +188,20 @@
                                         <div class="payment-options">
                                             <ul>
                                                 <li>
-                                                    <div class="radio-option">
+                                                    <!-- <div class="radio-option">
                                                         <input type="radio" [(ngModel)]="payment" [value]="'COD'"
                                                             name="payment-group" id="payment-2">
                                                         <label for="payment-2">Cash On Delivery
                                                             <span class="small-text">Please send a check to Store Name,
                                                                 Store Street, Store Town, Store State / County, Store
                                                                 Postcode.</span></label>
-                                                    </div>
+                                                    </div> -->
                                                 </li>
                                             </ul>
                                         </div>
                                     </div>
                                     <div class="text-end">
+                                        <!-- <button type="submit" class="btn-solid btn" -->
                                         <button type="submit" class="btn-solid btn" [disabled]="!checkoutForm.valid"
                                             (click)="placeOrder()" *ngIf="payment == 'COD'">
                                             Place Order
