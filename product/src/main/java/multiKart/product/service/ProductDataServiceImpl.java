@@ -130,6 +130,8 @@ public class ProductDataServiceImpl implements ProductDataService {
     }
 
 
+
+
     @Override
     public ApplicationResponse<Product> searchProducts(String keyword) {
         ApplicationResponse applicationResponse = new ApplicationResponse();
@@ -282,6 +284,38 @@ public class ProductDataServiceImpl implements ProductDataService {
             return errorResponse;
         }
     }
+
+
+
+    @Override
+    public ApplicationResponse filterProducts( String category, List<String> brands, List<String> colors, List<String>  sizes, Double minPrice, Double maxPrice) {
+        ApplicationResponse applicationResponse = new ApplicationResponse();
+        try {
+
+            List<Product> filterResult = productRepo.findByCategoryOrBrandOrVariantsColorOrVariantsSize(category, brands, colors, sizes, minPrice, maxPrice);
+
+            log.info("Filter query executed successfully.");
+
+            if (filterResult == null || filterResult.isEmpty()) {
+                log.info("No products found for filtering.");
+            } else {
+                log.info("{} Search Result found for the filter.", filterResult.size());
+            }
+
+            applicationResponse.setStatus(Constants.OK);
+            applicationResponse.setMessage(Constants.OK_MESSAGE);
+            applicationResponse.setData(filterResult);
+
+            return applicationResponse;
+        } catch (Exception e) {
+             log.error("An error occurred while searching for products", e);
+            applicationResponse.setStatus(Constants.INTERNAL_SERVER_ERROR);
+            applicationResponse.setMessage("An error occurred while searching for products");
+            applicationResponse.setData(null);
+            return applicationResponse;
+        }
+    }
+
 
 
 }
