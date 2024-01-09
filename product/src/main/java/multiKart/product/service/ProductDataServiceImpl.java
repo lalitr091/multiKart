@@ -7,6 +7,9 @@ import multiKart.product.model.ApplicationResponse;
 import multiKart.product.model.Category;
 import multiKart.product.model.Product;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
@@ -20,6 +23,8 @@ public class ProductDataServiceImpl implements ProductDataService {
     CategoryRepo categoryRepo;
     @Autowired
     ProductRepo productRepo;
+    @Autowired
+    MongoTemplate mongoTemplate;
 
     @Override
     public ApplicationResponse getCategories() {
@@ -288,11 +293,12 @@ public class ProductDataServiceImpl implements ProductDataService {
 
 
     @Override
-    public ApplicationResponse filterProducts( String category, List<String> brands, List<String> colors, List<String>  sizes, Double minPrice, Double maxPrice) {
+    public ApplicationResponse filterProducts(String category, List<String> brands, List<String> colors, List<String> sizes, Double minPrice, Double maxPrice) {
         ApplicationResponse applicationResponse = new ApplicationResponse();
         try {
+            Query query = buildQuery(category, brands, colors, sizes, minPrice, maxPrice);
 
-            List<Product> filterResult = productRepo.findByCategoryOrBrandOrVariantsColorOrVariantsSize(category, brands, colors, sizes, minPrice, maxPrice);
+            List<Product> filterResult = mongoTemplate.find(query, Product.class);
 
             log.info("Filter query executed successfully.");
 
@@ -308,7 +314,7 @@ public class ProductDataServiceImpl implements ProductDataService {
 
             return applicationResponse;
         } catch (Exception e) {
-             log.error("An error occurred while searching for products", e);
+            log.error("An error occurred while searching for products", e);
             applicationResponse.setStatus(Constants.INTERNAL_SERVER_ERROR);
             applicationResponse.setMessage("An error occurred while searching for products");
             applicationResponse.setData(null);
@@ -316,7 +322,39 @@ public class ProductDataServiceImpl implements ProductDataService {
         }
     }
 
+    public static Query buildQuery(String category, List<String> brands, List<String> colors, List<String> sizes, Double minPrice, Double maxPrice) {
+        Criteria criteria = new Criteria();
 
+        if (category != null && !category.isEmpty()) {
+            if (category.equalsIgnoreCase("men")) {
+                criteria.and("category").is("Men");
+            } else if (category.equalsIgnoreCase("women")) {
+                criteria.and("category").is("Women");
+            } else if (category.equalsIgnoreCase("all products")) {
+                // For "all products", show both Men and Women categories
+                criteria.and("category").in("Men", "Women");
+            }
+
+        }
+
+        if (brands != null && !brands.isEmpty()) {
+            criteria.and("brand").in(brands);
+        }
+
+        if (colors != null && !colors.isEmpty()) {
+            criteria.and("variants.color").in(colors);
+        }
+
+        if (sizes != null && !sizes.isEmpty()) {
+            criteria.and("variants.size").in(sizes);
+        }
+
+        if (minPrice != null && maxPrice != null) {
+            criteria.and("price").gte(minPrice).lte(maxPrice);
+        }
+
+        return new Query(criteria);
+    }
 
 }
 
