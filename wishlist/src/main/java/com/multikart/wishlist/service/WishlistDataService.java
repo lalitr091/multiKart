@@ -14,4 +14,6 @@ public interface WishlistDataService
     ApplicationResponse addToWishlist(Wishlist wishlist);
 
     ApplicationResponse removeFromWishlist(String userId, String productId, String variantId);
+
+    ApplicationResponse addAllToCart(String userId);
 }

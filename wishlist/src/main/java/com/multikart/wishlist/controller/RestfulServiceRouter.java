@@ -40,4 +40,11 @@ public class RestfulServiceRouter {
         return wishlistDataService.removeFromWishlist(userId, productId, variantId);
     }
 
+    @Operation(summary="add all products from wishlist to cart")
+    @Tag(name= "add all products from wishlist to cart")
+    @PostMapping("/addAll")
+    public ApplicationResponse addAllToCart(@RequestParam String userId) {
+        return wishlistDataService.addAllToCart(userId);
+    }
+
 }

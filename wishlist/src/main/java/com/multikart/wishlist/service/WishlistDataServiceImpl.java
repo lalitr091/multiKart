@@ -4,12 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.multikart.wishlist.Repository.WishlistRepo;
 import com.multikart.wishlist.common.Constants;
 import com.multikart.wishlist.model.ApplicationResponse;
+import com.multikart.wishlist.model.Cart;
 import com.multikart.wishlist.model.Product;
 import com.multikart.wishlist.model.Wishlist;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -174,6 +175,67 @@ public class WishlistDataServiceImpl implements WishlistDataService {
             ApplicationResponse errorResponse = new ApplicationResponse();
             errorResponse.setStatus(Constants.INTERNAL_SERVER_ERROR);
             errorResponse.setMessage("An error occurred while removing product from wishlist: " + e.getMessage());
+            return errorResponse;
+        }
+    }
+
+    @Override
+    public ApplicationResponse addAllToCart(String userId) {
+        ApplicationResponse applicationResponse = new ApplicationResponse();
+        try {
+            Wishlist wishlist = wishlistRepo.findWishlistByUserId(userId);
+            if (wishlist.getWishlistItems().isEmpty()) {
+                log.error("Your wishlist is empty!...");
+            }
+            // Initialize a list to store cart items
+            List<Cart.CartItem> cartItems = new ArrayList();
+
+            for (Wishlist.Wishlist_item wishlistItem : wishlist.getWishlistItems()) {
+                //add to cart for each wishlisted item
+                //api for adding product to cart http://localhost:8081/multikart/v1/cart/add
+                // Create a new cart item from the wishlist item
+                Cart.CartItem cartItem = new Cart.CartItem();
+                cartItem.setVariantid_qty(wishlistItem.getVariantid_qty());
+                cartItem.setVariantid(Integer.parseInt(wishlistItem.getVariantId()));
+                cartItem.setProductid(wishlistItem.getProductId());
+
+                // Add the cart item to the list
+                cartItems.add(cartItem);
+
+                // Remove the product from the wishlist
+               // wishlist.getWishlistItems().remove(wishlistItem);
+            }
+
+            // Create the request body
+            Cart requestBody = new Cart();
+            requestBody.setCartItems(cartItems);
+            requestBody.setUserid(userId);
+
+            // Call the API to add cart items
+            String apiUrl = "http://localhost:8081/multikart/v1/cart/add";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Cart> requestEntity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(apiUrl, requestEntity, String.class);
+
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                // If the API call is successful, remove items from the wishlist
+                wishlist.getWishlistItems().clear();
+                wishlistRepo.save(wishlist);
+
+                applicationResponse.setMessage("Products added to cart successfully!");
+            } else {
+                applicationResponse.setMessage("Failed to add products to cart. API call returned: " + responseEntity.getStatusCode());
+            }
+            return  applicationResponse;
+        }catch (Exception e){
+            log.error("An error occurred while adding all products to cart", e);
+            ApplicationResponse errorResponse = new ApplicationResponse();
+            errorResponse.setStatus(Constants.INTERNAL_SERVER_ERROR);
+            errorResponse.setMessage("An error occurred while adding all products to cart: " + e.getMessage());
             return errorResponse;
         }
     }
