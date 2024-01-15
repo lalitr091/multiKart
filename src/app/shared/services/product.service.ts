@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { map, startWith, delay, catchError, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject, forkJoin, of, throwError } from 'rxjs';
+import { map, startWith, delay, catchError, tap, mergeMap } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { Product } from '../classes/product';
 import { environment } from 'src/environments/environment';
@@ -198,14 +198,14 @@ export class ProductService {
     this.toastrService.success('Product has been added to the wishlist.');
 
     // Update the local storage with the updated wishlist
-    localStorage.setItem('wishlistItems', JSON.stringify(state.wishlist));
+    // localStorage.setItem('wishlistItems', JSON.stringify(state.wishlist));
 
     // Add API call to the wishlist
     const request =
     {
       "wishlistItems": [
         {
-          "variantid_qty": product.quantity,
+          "variantid_qty": 1,
           "variantId": product.variants[0].variant_id,
           "productId": product.product_id
         }
@@ -245,6 +245,19 @@ export class ProductService {
   //   };
   //   return this.http.delete(`${this.wishlistApiUrl}/remove?userId=${request.userId}&productId=${request.productId}&variantId=${request.variantId}`);
   // }
+
+  addAllWishlistItemsToCart(): Observable<any> {
+    const userId = 1234;
+    const url = `${this.wishlistApiUrl}/addAll`;
+    const params = { userId };
+
+    return this.http.post(url, null, { params }).pipe(
+      tap(() => {
+        // Trigger the cartUpdateSubject on a successful response
+        this.cartUpdateSubject.next();
+      })
+    );
+  }
 
   public removeWishlistItem(product: Product, showToast: boolean = true): Observable<any> {
     const index = state.wishlist.indexOf(product);
@@ -429,6 +442,49 @@ export class ProductService {
     return <Observable<Product[]>>itemsStream;
   }
 
+  // add to cart all products
+
+  public addToCartAllProducts(product){
+    const cartItem = state.cart.find((item: { id: any; }) => item.id === product.id);
+    const qty = product.quantity ? product.quantity : 1;
+    const items = cartItem ? cartItem : product;
+    const stock = this.calculateStockCounts(items, qty);
+    let cartItems = [];
+    product.forEach((product, index) => {
+      if (!cartItems[index]) {
+        // Initialize cartItems[index] if it's undefined
+        cartItems[index] = {};
+      }
+      cartItems[index].variantid_qty = product.quantity || 1;
+      cartItems[index].variantid = product.variants[0].variant_id;
+      cartItems[index].productid = product.product_id
+    },
+    );
+    const request =
+    {
+      "cartItems": cartItems,
+      "userid": "1234"
+    }
+    if (!stock) return false
+
+    if (cartItem == !undefined) {
+      cartItem.quantity += qty
+    } else {
+      this.http.post(this.cartUrl + '/cart/add', request)
+        .subscribe(
+          (response) => {
+            if (response) {
+              this.cartUpdateSubject.next();
+              return response;
+            }
+          },
+          (error) => {
+          }
+        );
+    }
+    return true;
+  }
+
   // Add to Cart
   public addToCart(product: Product, selectedColor?: string, selectedSize?: string): any {
     const cartItem = state.cart.find((item: { id: any; }) => item.id === product.id);
@@ -444,7 +500,7 @@ export class ProductService {
     {
       "cartItems": [
         {
-          "variantid_qty": product.quantity,
+          "variantid_qty": product.quantity || 1,
           "variantid": this.variantid,
           "productid": product.product_id
         }
@@ -553,8 +609,23 @@ export class ProductService {
     ---------------------------------------------
   */
 
+    //Get Products filter by category, brand, colors, size, minprice and max price
+    newFilterProducts(category: string, brands: string[], colors: string[], sizes: string[], minPrice: number, maxPrice: number): Observable<any> {
+      // Construct the query parameters
+      let params = new HttpParams()
+        .set('category', category)
+        .set('brands', brands ? brands.join(',') : '')
+        .set('colors', colors ? colors.join(',') : '')
+        .set('sizes', sizes ? sizes.join(',') : '')
+        .set('minPrice', minPrice ? minPrice.toString() : '0')
+        .set('maxPrice', maxPrice ? maxPrice.toString() : '1000');
+  
+      // Make the GET request with the constructed query parameters
+      return this.http.get(`${this.apiUrl}/product/filterProducts`, { params });
+    }
+
   // Get Product Filter
-  public filterProducts(filter: any): Observable<Product[]> {
+  public oldFilterProducts(filter: any): Observable<Product[]> {
     this.products;
     return this.productRecords?.pipe(map(product =>
       product?.filter((item: Product) => {
@@ -661,56 +732,84 @@ public filterByPriceRange(products: Product[], minPrice: number, maxPrice: numbe
 }
 
 
+  // // Sorting Filter
+  // public sortProducts(products: Product[], payload: string): any {
+  //   if (!payload) { return products; }
+  //   if (payload === 'ascending') {
+  //     return products.sort((a, b) => {
+  //       if (a.id < b.id) {
+  //         return -1;
+  //       } else if (a.id > b.id) {
+  //         return 1;
+  //       }
+  //       return 0;
+  //     })
+  //   } else if (payload === 'a-z') {
+  //     return products.sort((a, b) => {
+  //       if (a.title < b.title) {
+  //         return -1;
+  //       } else if (a.title > b.title) {
+  //         return 1;
+  //       }
+  //       return 0;
+  //     })
+  //   } else if (payload === 'z-a') {
+  //     return products.sort((a, b) => {
+  //       if (a.title > b.title) {
+  //         return -1;
+  //       } else if (a.title < b.title) {
+  //         return 1;
+  //       }
+  //       return 0;
+  //     })
+  //   } else if (payload === 'low') {
+  //     return products.sort((a, b) => {
+  //       if (a.price < b.price) {
+  //         return -1;
+  //       } else if (a.price > b.price) {
+  //         return 1;
+  //       }
+  //       return 0;
+  //     })
+  //   } else if (payload === 'high') {
+  //     return products.sort((a, b) => {
+  //       if (a.price > b.price) {
+  //         return -1;
+  //       } else if (a.price < b.price) {
+  //         return 1;
+  //       }
+  //       return 0;
+  //     })
+  //   }
+  // }
+
   // Sorting Filter
-  public sortProducts(products: Product[], payload: string): any {
-    if (!payload) { return products; }
-    if (payload === 'ascending') {
-      return products.sort((a, b) => {
-        if (a.id < b.id) {
-          return -1;
-        } else if (a.id > b.id) {
-          return 1;
-        }
-        return 0;
-      })
-    } else if (payload === 'a-z') {
-      return products.sort((a, b) => {
-        if (a.title < b.title) {
-          return -1;
-        } else if (a.title > b.title) {
-          return 1;
-        }
-        return 0;
-      })
-    } else if (payload === 'z-a') {
-      return products.sort((a, b) => {
-        if (a.title > b.title) {
-          return -1;
-        } else if (a.title < b.title) {
-          return 1;
-        }
-        return 0;
-      })
-    } else if (payload === 'low') {
-      return products.sort((a, b) => {
-        if (a.price < b.price) {
-          return -1;
-        } else if (a.price > b.price) {
-          return 1;
-        }
-        return 0;
-      })
-    } else if (payload === 'high') {
-      return products.sort((a, b) => {
-        if (a.price > b.price) {
-          return -1;
-        } else if (a.price < b.price) {
-          return 1;
-        }
-        return 0;
-      })
+public sortProducts(products: Product[], payload: string): any {
+  if (!payload) { return products; }
+  
+  const compareFunction = (a: string | number, b: string | number): number => {
+    if (typeof a === 'string' && typeof b === 'string') {
+      return a.localeCompare(b, undefined, { sensitivity: 'base' });
+    } else {
+      return a < b ? -1 : (a > b ? 1 : 0);
     }
+  };
+
+  switch (payload) {
+    case 'ascending':
+      return products.sort((a, b) => compareFunction(a.id, b.id));
+    case 'a-z':
+      return products.sort((a, b) => compareFunction(a.title, b.title));
+    case 'z-a':
+      return products.sort((a, b) => compareFunction(b.title, a.title));
+    case 'low':
+      return products.sort((a, b) => compareFunction(a.price, b.price));
+    case 'high':
+      return products.sort((a, b) => compareFunction(b.price, a.price));
+    default:
+      return products;
   }
+}
 
   /*
     ---------------------------------------------

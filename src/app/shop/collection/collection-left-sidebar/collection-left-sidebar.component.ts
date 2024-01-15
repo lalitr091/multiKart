@@ -1,8 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ViewportScroller } from '@angular/common';
 import { ProductService } from "../../../shared/services/product.service";
 import { Product } from '../../../shared/classes/product';
+import { BrandsComponent } from '../widgets/brands/brands.component';
+import { ColorsComponent } from '../widgets/colors/colors.component';
+import { PriceComponent } from '../widgets/price/price.component';
+import { SizeComponent } from '../widgets/size/size.component';
 
 @Component({
   selector: 'app-collection-left-sidebar',
@@ -33,9 +37,15 @@ export class CollectionLeftSidebarComponent implements OnInit {
   currentPage: number = 1;
   loadFilteredProducts: any;
   displayingItems = 0;
+  @ViewChild(BrandsComponent) brandsComponent: BrandsComponent;
+  @ViewChild(ColorsComponent) colorsComponent: ColorsComponent;
+  @ViewChild(SizeComponent) sizeComponent: SizeComponent;
+  @ViewChild(PriceComponent) priceComponent: PriceComponent;
+  filterTags:  any[] = [];
 
   constructor(private route: ActivatedRoute, private router: Router,
-    private viewScroller: ViewportScroller, public productService: ProductService) {
+    private viewScroller: ViewportScroller, public productService: ProductService,
+    private cdr: ChangeDetectorRef) {
     // // Get Query params..
     this.route.queryParams.subscribe(params => {
 
@@ -55,7 +65,7 @@ export class CollectionLeftSidebarComponent implements OnInit {
     this.paginate = this.productService.getPager(this.products.length, this.pageNo);
 
       // Get Filtered Products..
-      this.productService.filterProducts(this.tags).subscribe(response => {         
+      this.productService.oldFilterProducts(this.tags).subscribe(response => {         
         if (response?.length > 0 ) {
         // Sorting Filter
         this.products = this.productService.sortProducts(response, this.sortBy);
@@ -101,6 +111,69 @@ export class CollectionLeftSidebarComponent implements OnInit {
       }
     })
   }
+
+  applyFilters() {
+    // Gather selected filter values and trigger product filtering
+    const selectedBrands = this.brandsComponent.getSelectedBrands(); // Assuming you have a method to get selected brands
+    const selectedColors = this.colorsComponent.getSelectedColors(); // Assuming you have a method to get selected colors
+    const selectedSizes = this.sizeComponent.getSelectedSizes(); // Assuming you have a method to get selected sizes
+    const minPrice = this.priceComponent.getMinPrice(); // Assuming you have a method to get the min price
+    const maxPrice = this.priceComponent.getMaxPrice(); // Assuming you have a method to get the max price
+
+  // Add selected brands to the tags array
+  if (selectedBrands.length > 0) {
+    this.tags.push(...selectedBrands.map(brand => ({ type: 'brand', value: brand })));
+  }
+
+  // Add selected colors to the tags array
+  if (selectedColors.length > 0) {
+    this.tags.push(...selectedColors.map(color => ({ type: 'color', value: color })));
+  }
+
+  // Add selected sizes to the tags array
+  if (selectedSizes.length > 0) {
+    this.tags.push(...selectedSizes.map(size => ({ type: 'size', value: size })));
+  }
+
+  // Add price range to the tags array
+  if (minPrice || maxPrice) {
+    this.tags.push({ type: 'price', value: `${minPrice} - ${maxPrice}` });
+  }  
+    
+    // Call your product filtering method with the gathered filter values
+    this.productService.newFilterProducts(this.conditionString.category, selectedBrands, selectedColors, selectedSizes, minPrice, maxPrice)
+      .subscribe(
+        (filteredProducts) => {
+         // Handle the filtered products here
+         const res = [];
+
+      const data = filteredProducts.data;
+      while (data?.length > 0) {
+        const chunk = data.splice(0, 16);
+        res.push(chunk);
+      }
+
+      if (Array.isArray(data)) {
+        // If it's an array, proceed with updating the view
+        this.productPaginated = res;
+        this.products = res.flat(1);
+        this.paginate = this.productService.getPager(this.products.length, this.pageNo);
+        
+        this.displayProduct = this.productPaginated[parseInt(this.paginate.currentPage) - 1];
+        this.productPaginated.forEach((element, index) => {
+          if (index == parseInt(this.paginate.currentPage) - 1) {
+            this.displayingItems = element.length;
+          }
+        });
+      } else {
+        // If it's not an array, handle accordingly (e.g., show an error message)
+      }
+    },
+        (error) => {
+          // Handle errors
+        }
+      );
+   }
 
   // Get products list by category/ get products list of all products/ get products list by search
   getProducts(result, sortBy, filterByBrand) {
@@ -165,15 +238,15 @@ export class CollectionLeftSidebarComponent implements OnInit {
       size: this.size.length ? this.size.join(",") : null
     }
 
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: params,
-      queryParamsHandling: 'merge', // preserve the existing query params in the route
-      skipLocationChange: false  // do trigger navigation
-    }).finally(() => {
-      this.viewScroller.setOffset([120, 120]);
-      this.viewScroller.scrollToAnchor('products'); // Anchore Link
-    });
+    // this.router.navigate([], {
+    //   relativeTo: this.route,
+    //   queryParams: params,
+    //   queryParamsHandling: 'merge', // preserve the existing query params in the route
+    //   skipLocationChange: false  // do trigger navigation
+    // }).finally(() => {
+    //   this.viewScroller.setOffset([120, 120]);
+    //   this.viewScroller.scrollToAnchor('products'); // Anchore Link
+    // });
   }
 
   // Clear Tags
@@ -190,10 +263,11 @@ export class CollectionLeftSidebarComponent implements OnInit {
 
   // product Pagination
   setPage(page: number) {
+    
     this.displayProduct = this.productPaginated[parseInt(this.paginate.currentPage) - 1];
     this.productPaginated.forEach((element, index) => {
       if(index == parseInt(this.paginate.currentPage) - 1) {
-        this.displayingItems = element.length;
+        this.displayingItems = element.length;        
       }
     })
     this.router.navigate([], {

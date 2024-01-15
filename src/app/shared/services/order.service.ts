@@ -37,29 +37,22 @@ export class OrderService {
 
   // transaction 
   razorpayTransaction(orderId: string, totalAmount: number, razorpay_payment_id ): Observable<any> {
+    const amount =  Math.floor(totalAmount);
     const id = orderId.replace(" ","");
-    const url = `${this.razorpayApiUrl}/payment/createOrder?orderId=${id}&amount=${totalAmount}`;
+    const url = `${this.razorpayApiUrl}/payment/createOrder?orderId=${id}&amount=${amount}`;
     const dt = new Date();
     const padL = (nr, len = 2, chr = `0`) => `${nr}`.padStart(2, chr);
     const dformat = `${dt.getFullYear()}/${padL(dt.getMonth()+1)}/${padL(dt.getDate())}T${padL(dt.getHours())}:${
       padL(dt.getMinutes())}:${padL(dt.getSeconds())}.000+00:00`;
      const requestData = {
-      _id: id,
-      // transactionId: razorpay_payment_id,
-      amount: totalAmount
-      // created_at: dformat,
-      // currency: 'USD',
-      // receipt: 'txn_235425',
-      // offer_id: "null",
-      // state:'created',
+      orderId: id,
+      amount: Math.floor(totalAmount)
     };
     return this.http.post<any>(url, requestData).pipe(
       map((resp: any) => {
-        console.log('API Response:', resp);
         return resp;
       }),
       catchError((error) => {
-        console.error('API Error:', error);
         throw error;
       })
     );
@@ -85,7 +78,7 @@ export class OrderService {
     }
   
   //placeOrder 08/12/2023
-  public placeOrder(products, totalAmount, checkoutForm, transactionId){    
+  public placeOrder(products, totalAmount, checkoutForm, transactionId?, paymentMode?){    
     const productArray = [];
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
@@ -102,7 +95,7 @@ export class OrderService {
     }
 
     const request = {
-      modeOfPayment: "COD",
+      modeOfPayment: paymentMode,
       userId: 1234,
       totalAmount: totalAmount,
       orderStatus: "Pending",
@@ -121,7 +114,6 @@ export class OrderService {
       products: productArray
     }
 
-    console.log('Requested data', request);
   this.http.post('http://localhost:8086/multikart/v1/order/create', request)
   .subscribe(
     (response: any) => {
@@ -129,10 +121,10 @@ export class OrderService {
         this.cartUpdateSubject.next();
         this.productService.getCartItems(1234);
         this.toastrService.success(response.message);
-        this.razorpayTransaction(response.message.split('-')[1], totalAmount*100, transactionId).subscribe(data => {
-          console.log(data);
-        })
-        console.log(response.message)
+        if (paymentMode == 'RAZORPAY') {
+          this.razorpayTransaction(response.message.split('-')[1], totalAmount, transactionId).subscribe(data => {
+          }) 
+        }
         this.router.navigate(['/shop/cart']);
         return response;
       }

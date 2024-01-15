@@ -42,7 +42,7 @@ export class SizeComponent implements OnInit {
       this.size.splice(index,1);  // removed in array unchecked value  
     
     let size = this.size.length ? { size: this.size.join(",") } : { size: null }; 
-    this.sizeFilter.emit(size);
+    // this.sizeFilter.emit(size);
   }
 
   // check if the item are selected
@@ -50,6 +50,10 @@ export class SizeComponent implements OnInit {
     if(this.size.indexOf(item) != -1){
       return true;
     }
+  }
+
+  getSelectedSizes() {
+    return this.size;
   }
 
 }

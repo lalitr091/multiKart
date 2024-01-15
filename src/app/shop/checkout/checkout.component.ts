@@ -26,6 +26,7 @@ export class CheckoutComponent implements OnInit {
   totalAmount: number;
   private cartUpdateSubscription: Subscription;
   public razorpay_payment_id:any;
+  paymentMode: any;
 
   constructor(private fb: UntypedFormBuilder,
     public productService: ProductService,
@@ -61,9 +62,7 @@ export class CheckoutComponent implements OnInit {
     if (this.totalAmountSubscription) {
       this.totalAmountSubscription.unsubscribe();
     }
-    if (this.cartUpdateSubscription) {
       this.cartUpdateSubscription.unsubscribe();
-    }
   }
 
   getCartData() {
@@ -87,9 +86,13 @@ export class CheckoutComponent implements OnInit {
   }
 
   //CODCheckout 08/12/2023
-   placeOrder() {
+   placeOrder(modeOfPayment) {
+    this.paymentMode = modeOfPayment; 
+    if (modeOfPayment === 'RAZORPAY') {
     this.razorpayModal(this.totalAmount, this.checkoutForm, this.products);
-    // this.orderService.placeOrder(this.products, this.totalAmount, this.checkoutForm);
+    } else {
+    this.orderService.placeOrder(this.products, this.totalAmount, this.checkoutForm, this.paymentMode);
+    }
   }
 
 
@@ -98,7 +101,7 @@ export class CheckoutComponent implements OnInit {
     let options = {
       "description": "Online Fashion Store",
       "currency": "USD",
-      "amount": this.totalAmount*100,
+      "amount": Math.round(totalAmount * 100),
       "name": "MultiKart",
       "key": "rzp_test_Ft0nb7vJtmhwh8", // Enter the Key ID generated from the Dashboard
       "image": "https://angular.pixelstrap.com/multikart/assets/images/icon/logo.png",
@@ -132,8 +135,7 @@ export class CheckoutComponent implements OnInit {
 
 }
   processResponse(resp:any){
-      console.log(resp);
-      this.orderService.placeOrder(this.products, this.totalAmount, this.checkoutForm, this.razorpay_payment_id);
+      this.orderService.placeOrder(this.products, this.totalAmount, this.checkoutForm, this.razorpay_payment_id, this.paymentMode);
   }
 
 }

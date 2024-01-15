@@ -3,7 +3,7 @@ import { NavigationExtras, Router } from '@angular/router';
 import { ProductService } from "../../shared/services/product.service";
 import { Product } from "../../shared/classes/product";
 import { ToastrService } from 'ngx-toastr';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-wishlist',
@@ -19,13 +19,14 @@ selectedSize: any;
 public userId = '1234';
 private wishlistUpdateSubscription: Subscription;
 public counter: number = 1;
+// private cartUpdateSubject: Subject<void> = new Subject<void>();
 
   constructor(private router: Router, 
     public productService: ProductService, private toastrService: ToastrService) {
-    this.productService.wishlistItems.subscribe((response: Product[]) => {
-      if(response.length >0){
-        this.products = response}
-      });
+    // this.productService.wishlistItems.subscribe((response: Product[]) => {
+    //   if(response.length >0){
+    //     this.products = response}
+    //   });
   }
 
   ngOnInit(): void {
@@ -76,7 +77,7 @@ public counter: number = 1;
   
       // If the addToCart operation is successful, remove the product from the wishlist
       if (status) {
-        // this.productService.removeWishlistItem(product, false);
+        this.productService.removeWishlistItem(product, false);
         this.toastrService.success( `${product.title} is added to cart`);
       }
     }
@@ -85,7 +86,6 @@ public counter: number = 1;
   
   async showToastMessage(message: string): Promise<void> {
     // You can implement your toast message logic here
-    console.log(message);
     // Example: You might want to use a library like Toastr or Angular Material Snackbar to display the message
   }
   
@@ -94,12 +94,10 @@ public counter: number = 1;
     this.productService.removeWishlistItem(product).subscribe(
       (response) => {
         // Assuming the response indicates a successful removal from the wishlist
-        console.log('Product removed from wishlist:', product);
         // You can update the local products array if needed
         this.products = this.products.filter(item => item !== product);
       },
       (error) => {
-        console.error('Error removing product from wishlist:', error);
       }
     );
   }
@@ -116,9 +114,21 @@ public counter: number = 1;
       this.router.navigate(['/shop/collection/left/sidebar/'], navigationExtras);
     }
 
-     //Checkout Cart item to order
-//   onCheckout() {
-//     this.router.navigate(['/shop/checkout/']);
-//  }
+    //  Checkout Cart item to order
+    onCheckout() {
+      this.productService.addAllWishlistItemsToCart().subscribe(
+        (response) => {
+          // The HTTP request was successful
+          this.toastrService.success('All products are added to cart');
+          // this.cartUpdateSubject.next(); // Trigger cart update
+          this.router.navigate(['/shop/checkout/']);
+        },
+        (error) => {
+          // Handle errors
+          console.error('Error adding wishlist items to cart', error);
+          // You can show an error message or handle it as needed
+        }
+      );
+    }
 
 }

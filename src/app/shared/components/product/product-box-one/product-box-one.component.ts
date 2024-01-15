@@ -48,7 +48,6 @@ export class ProductBoxOneComponent implements OnInit {
         }
       },
       (error) => {
-        console.error('Error fetching product ratings:', error);
       }
     );
   }
@@ -93,11 +92,9 @@ export class ProductBoxOneComponent implements OnInit {
     this.productService.addToWishlist(product).subscribe(
       () => {
         // Optional: Handle success, e.g., show a success message
-        console.log('Product added to wishlist successfully');
       },
       (error) => {
         // Optional: Handle error, e.g., show an error message
-        console.error('Error adding product to wishlist:', error);
       }
     );
   }
@@ -117,7 +114,6 @@ export class ProductBoxOneComponent implements OnInit {
       },
       (error) => {
         this.toastrService.error('Failed to add product to compare. Please try again.');
-        console.error('Error adding to compare:', error);
       }
     );
   }

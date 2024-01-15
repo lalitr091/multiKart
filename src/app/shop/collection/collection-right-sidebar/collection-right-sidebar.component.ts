@@ -44,7 +44,7 @@ export class CollectionRightSidebarComponent implements OnInit {
         this.pageNo = params.page ? params.page : this.pageNo;
 
         // Get Filtered Products..
-        this.productService.filterProducts(this.tags).subscribe(response => { 
+        this.productService.oldFilterProducts(this.tags).subscribe(response => { 
           if (response?.length > 0 ) {
           // Sorting Filter
           this.products = this.productService.sortProducts(response, this.sortBy);

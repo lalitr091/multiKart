@@ -63,6 +63,13 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    if (this.totalAmountSubscription) {
+      this.totalAmountSubscription.unsubscribe();
+    }
+      this.cartUpdateSubscription.unsubscribe();
+    }
+
   //Navigate to next component and get the searched product list
   onSearch() {
     let navigationExtras: NavigationExtras = {
@@ -70,15 +77,6 @@ export class SettingsComponent implements OnInit {
       fragment: 'anchor'
     };
     this.router.navigate(['/shop/collection/left/sidebar/'], navigationExtras);
-  }
-
-  ngOnDestroy() {
-    if (this.cartUpdateSubscription) {
-      this.cartUpdateSubscription.unsubscribe();
-    }
-    if (this.totalAmountSubscription) {
-      this.totalAmountSubscription.unsubscribe();
-    }  
   }
 
   getCartData() {

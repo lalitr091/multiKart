@@ -187,23 +187,38 @@
                                     <div class="upper-box">
                                         <div class="payment-options">
                                             <ul>
+                                                <!-- Cash On Delivery (COD) Option -->
                                                 <li>
-                                                    <!-- <div class="radio-option">
-                                                        <input type="radio" [(ngModel)]="payment" [value]="'COD'"
-                                                            name="payment-group" id="payment-2">
+                                                    <div class="radio-option">
+                                                        <input type="radio" [(ngModel)]="payment" [value]="'COD'" name="payment-group" id="payment-2">
                                                         <label for="payment-2">Cash On Delivery
-                                                            <span class="small-text">Please send a check to Store Name,
-                                                                Store Street, Store Town, Store State / County, Store
-                                                                Postcode.</span></label>
-                                                    </div> -->
+                                                            <span class="small-text">Please send a check to Store Name, Store Street, Store Town, Store
+                                                                State / County, Store Postcode.</span>
+                                                        </label>
+                                                    </div>
+                                                </li>
+                                                
+                                                <!-- Razorpay Option -->
+                                                <li>
+                                                    <div class="radio-option">
+                                                        <input type="radio" [(ngModel)]="payment" [value]="'RAZORPAY'" name="payment-group" id="payment-3">
+                                                        <label for="payment-3">Razorpay
+                                                            <span class="small-text">Pay securely with Razorpay.</span>
+                                                        </label>
+                                                    </div>
                                                 </li>
                                             </ul>
                                         </div>
                                     </div>
+                                    
                                     <div class="text-end">
                                         <!-- <button type="submit" class="btn-solid btn" -->
                                         <button type="submit" class="btn-solid btn" [disabled]="!checkoutForm.valid"
-                                            (click)="placeOrder()" *ngIf="payment == 'COD'">
+                                            (click)="placeOrder('COD')" *ngIf="payment == 'COD'' &&  'payment != 'RAZORPAY'">
+                                            Place Order
+                                        </button>
+                                        <button type="submit" class="btn-solid btn" [disabled]="!checkoutForm.valid"
+                                            (click)="placeOrder('RAZORPAY')" *ngIf="payment != 'COD'' &&  'payment == 'RAZORPAY'">
                                             Place Order
                                         </button>
                                         <!-- <ngx-paypal [config]="payPalConfig" *ngIf="payment == 'Paypal'"></ngx-paypal> -->

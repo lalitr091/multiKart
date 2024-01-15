@@ -42,7 +42,7 @@ export class ColorsComponent implements OnInit {
         this.colors.splice(index,1);  // removed in array unchecked value
     
     let colors = this.colors.length ? { color: this.colors.join(",") } : { color: null };    
-    this.colorsFilter.emit(colors);
+    // this.colorsFilter.emit(colors);
   }
 
   // check if the item are selected
@@ -50,6 +50,10 @@ export class ColorsComponent implements OnInit {
     if(this.colors.indexOf(item) != -1){
       return true;
     }
+  }
+
+  getSelectedColors() {
+    return this.colors;
   }
 
 }

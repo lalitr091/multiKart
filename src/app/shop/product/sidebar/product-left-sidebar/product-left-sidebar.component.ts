@@ -69,7 +69,6 @@ export class ProductLeftSidebarComponent implements OnInit {
     this.orderService.getAllOrders(this.userId).subscribe(
       (orders) => {
         this.orders = orders;
-        console.log('Orders:', this.orders);
         // Do something with the orders, e.g., update your UI
       },
       (error) => {
@@ -182,7 +181,6 @@ export class ProductLeftSidebarComponent implements OnInit {
     }
     this.orderService.getAllOrders(this.userId).subscribe(
       (response) => {
-        console.log(response)
 
 
         const productId = product.product_id;
@@ -386,11 +384,9 @@ export class ProductLeftSidebarComponent implements OnInit {
     this.productService.addToWishlist(product).subscribe(
       () => {
         // Optional: Handle success, e.g., show a success message
-        console.log('Product added to wishlist successfully');
       },
       (error) => {
         // Optional: Handle error, e.g., show an error message
-        console.error('Error adding product to wishlist:', error);
       }
     );
   }

@@ -40,7 +40,7 @@ export class BrandsComponent implements OnInit {
       this.brands.splice(index,1);  // removed in array unchecked value  
     
     let brands = this.brands.length ? { brand: this.brands.join(",") } : { brand: null };
-    this.brandsFilter.emit(brands);
+    // this.brandsFilter.emit(brands);
   }
 
   // check if the item are selected
@@ -49,5 +49,11 @@ export class BrandsComponent implements OnInit {
       return true;
     }
   }
+
+ // Get selected brands
+getSelectedBrands(): any[] {
+  return this.brands.filter(brand => this.checked(brand));
+}
+
 
 }

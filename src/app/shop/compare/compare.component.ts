@@ -94,12 +94,10 @@ export class CompareComponent implements OnInit {
     this.productService.removeCompareItem(product).subscribe(
       (response) => {
         // Assuming the response indicates a successful removal from the wishlist
-        console.log('Product removed from wishlist:', product);
         // You can update the local products array if needed
         this.products = this.products.filter(item => item !== product);
       },
       (error) => {
-        console.error('Error removing product from wishlist:', error);
       }
     );
   }
