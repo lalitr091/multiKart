@@ -28,6 +28,7 @@
     "@angular/platform-browser-dynamic": "^16.0.4",
     "@angular/platform-server": "^16.0.5",
     "@angular/router": "^16.0.4",
+    "@auth0/auth0-angular": "^2.2.2",
     "@ks89/angular-modal-gallery": "^10.0.1",
     "@ng-bootstrap/ng-bootstrap": "^15.0.1",
     "@ngneat/content-loader": "^7.0.0",
