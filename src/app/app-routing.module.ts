@@ -4,7 +4,6 @@ import { Routes, RouterModule } from '@angular/router';
 import { ShopComponent } from './shop/shop.component';
 import { PagesComponent } from './pages/pages.component';
 import { ElementsComponent } from './elements/elements.component';
-import { AuthGuard } from '@auth0/auth0-angular';
 import { FashionComponent } from './home/fashion/fashion.component';
 
 const routes: Routes = [
