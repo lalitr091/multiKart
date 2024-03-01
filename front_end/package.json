@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng start",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
@@ -95,6 +95,6 @@
     "protractor": "~7.0.0",
     "ts-node": "~10.8.0",
     "tslint": "~6.1.0",
-    "typescript": "~5.0.4"
+    "typescript": "~5.1.6"
   }
 }

@@ -1,3 +1,4 @@
-node_modules
-.angular
-dist
+front_end/node_modules
+front_end/.angular
+front_end/dist
+front_end/16.2.4
